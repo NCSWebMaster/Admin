@@ -1,1 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admissions Pipeline — NCS OnePlace</title>
+<link rel="stylesheet" href="/assets/css/base.css?v=6">
+<link rel="stylesheet" href="/pages/admissions/pipeline.css?v=1">
+</head>
+<body>
 
+<nav class="top-nav">
+  <a class="brand" href="/pages/dashboard/index.html">
+    <img src="/assets/img/logo.png" alt="">
+    NCS OnePlace
+  </a>
+  <div class="nav-right">
+    <a class="nav-link" href="/pages/admissions/new-family.html">+ New Family</a>
+    <a class="nav-link" href="/pages/dashboard/index.html">← Dashboard</a>
+  </div>
+</nav>
+
+<div class="page-wrap">
+  <div class="page-header">
+    <h1>Admissions Pipeline</h1>
+    <p>Track interested families from access code through decision, by school year.</p>
+  </div>
+
+  <div id="status-msg" class="status-msg"></div>
+
+  <div class="year-filter-row">
+    <label for="year-select">School Year</label>
+    <select id="year-select" class="form-select"><option value="all">All Years</option></select>
+  </div>
+
+  <div id="tab-bar" class="tab-bar"></div>
+
+  <div id="family-list"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/assets/js/supabase-client.js?v=1"></script>
+<script src="/pages/admissions/pipeline.js?v=1"></script>
+</body>
+</html>
