@@ -1,1 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admissions Hub — NCS OnePlace</title>
+<link rel="stylesheet" href="/assets/css/base.css?v=6">
+<link rel="stylesheet" href="/pages/admissions/hub.css?v=1">
+</head>
+<body>
 
+<nav class="top-nav">
+  <a class="brand" href="/pages/dashboard/index.html">
+    <img src="/assets/img/logo.png" alt="">
+    NCS OnePlace
+  </a>
+  <div class="nav-right">
+    <a class="nav-link" href="/pages/dashboard/index.html">← Dashboard</a>
+  </div>
+</nav>
+
+<div class="page-wrap">
+  <div class="page-header hub-header-row">
+    <div>
+      <h1>Admissions Hub</h1>
+      <p>Track interested families from access code through decision, by school year.</p>
+    </div>
+    <a class="btn-cta" href="/pages/admissions/new-family.html">+ New Interested Family</a>
+  </div>
+
+  <div id="status-msg" class="status-msg"></div>
+
+  <div class="view-toggle">
+    <button id="view-pipeline-btn" class="active" data-view="pipeline">Pipeline</button>
+    <button id="view-reports-btn" data-view="reports">Reports</button>
+  </div>
+
+  <div class="year-filter-row">
+    <label for="year-select">School Year</label>
+    <select id="year-select" class="form-select"><option value="all">All Years</option></select>
+  </div>
+
+  <div id="pipeline-view">
+    <div id="stage-grid" class="stage-grid"></div>
+    <div class="trash-link-row">
+      <button id="trash-toggle-btn" type="button">🗑 Trash (<span id="trash-count">0</span>)</button>
+    </div>
+    <div id="family-list"></div>
+  </div>
+
+  <div id="reports-view" style="display:none;">
+    <div id="report-grid" class="report-grid"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/assets/js/supabase-client.js?v=1"></script>
+<script src="/pages/admissions/hub.js?v=1"></script>
+</body>
+</html>
