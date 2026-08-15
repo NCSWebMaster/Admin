@@ -4,10 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NCS OnePlace — Dashboard</title>
-<link rel="stylesheet" href="/assets/css/base.css?v=1">
+<link rel="stylesheet" href="/assets/css/base.css?v=2">
 <style>
-  .wrap { max-width: 640px; margin: 80px auto; padding: 0 24px; text-align: center; }
+  .wrap { max-width: 640px; margin: 60px auto 0; padding: 0 24px; text-align: center; }
   .badge { display: inline-block; background: var(--success-bg); color: var(--success); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; margin-top: 12px; }
+  .quick-links { max-width: 420px; margin: 40px auto 0; text-align: left; }
+  .quick-link-card {
+    display: block; background: var(--white); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 18px; text-decoration: none; color: var(--ink); box-shadow: var(--shadow); margin-bottom: 12px;
+  }
+  .quick-link-card:hover { border-color: var(--bronze); }
+  .quick-link-card .title { font-weight: 600; color: var(--red); font-size: 0.95rem; }
+  .quick-link-card .desc { color: var(--ink-soft); font-size: 0.85rem; margin-top: 2px; }
 </style>
 </head>
 <body>
@@ -16,6 +24,13 @@
   <p id="who" style="color:var(--ink-soft);"></p>
   <div class="badge">Signed in &amp; verified</div>
   <p style="margin-top:32px;"><button id="signout" class="btn-link" type="button" style="border:none;background:none;color:var(--ink-soft);text-decoration:underline;cursor:pointer;">Sign out</button></p>
+</div>
+
+<div class="quick-links">
+  <a class="quick-link-card" href="/pages/admissions/new-family.html">
+    <div class="title">New Interested Family →</div>
+    <div class="desc">Enter parent &amp; student info and send an application access code.</div>
+  </a>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
