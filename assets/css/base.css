@@ -272,6 +272,30 @@ input[type="date"].form-input {
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* --- Shared navigation card tiles (dashboard, admissions hub landing, etc.) --- */
+
+.quick-links {
+  max-width: 420px;
+  margin: 40px auto 0;
+  text-align: left;
+}
+
+.quick-link-card {
+  display: block;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  text-decoration: none;
+  color: var(--ink);
+  box-shadow: var(--shadow);
+  margin-bottom: 12px;
+}
+
+.quick-link-card:hover { border-color: var(--bronze); }
+.quick-link-card .title { font-weight: 600; color: var(--red); font-size: 0.95rem; }
+.quick-link-card .desc { color: var(--ink-soft); font-size: 0.85rem; margin-top: 2px; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.001ms !important;
