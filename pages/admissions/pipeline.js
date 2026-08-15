@@ -34,6 +34,9 @@ let allRows = [];
 let activeTab = 'code_sent';
 let selectedYear = 'all';
 let expandedId = null;
+let canHardDelete = false;
+
+const TRASH_KEY = 'trash';
 
 const els = {
   yearSelect: document.getElementById('year-select'),
@@ -68,8 +71,7 @@ async function requireStaffSession() {
 async function loadData() {
   const { data, error } = await supabaseClient
     .from('admissions_applications')
-    .select('id, access_code, status, school_year, created_at, submitted_at, decided_at, student_full_name, dob, current_grade, anticipated_grade, parent1_name, parent1_email, parent1_phone, parent2_name, parent2_email, parent2_phone, home_address_street, home_address_city, home_address_state, home_address_zip, nickname, age, gender, previous_schools, last_grade_completed, repeated_grade, repeated_grade_explain, disciplinary_history, disciplinary_explain, learning_needs, learning_needs_explain, medical_notes, siblings, church_affiliation, referral_source, emergency_contact_name, emergency_contact_relationship, emergency_contact_phone, signature_name, signature_date, ncs_family_reference_name, ncs_family_reference_email, ncs_family_reference_phone')
-    .is('deleted_at', null)
+    .select('id, access_code, status, school_year, created_at, submitted_at, decided_at, deleted_at, student_full_name, dob, current_grade, anticipated_grade, parent1_name, parent1_email, parent1_phone, parent2_name, parent2_email, parent2_phone, home_address_street, home_address_city, home_address_state, home_address_zip, nickname, age, gender, previous_schools, last_grade_completed, repeated_grade, repeated_grade_explain, disciplinary_history, disciplinary_explain, learning_needs, learning_needs_explain, medical_notes, siblings, church_affiliation, referral_source, emergency_contact_name, emergency_contact_relationship, emergency_contact_phone, signature_name, signature_date, ncs_family_reference_name, ncs_family_reference_email, ncs_family_reference_phone')
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -90,30 +92,39 @@ function populateYearSelect() {
   selectedYear = els.yearSelect.value;
 }
 
-function filteredRows() {
+function rowsByYear() {
   return allRows.filter(r => selectedYear === 'all' || r.school_year === selectedYear);
 }
 
+function nonDeletedRows() { return rowsByYear().filter(r => !r.deleted_at); }
+function deletedRows() { return rowsByYear().filter(r => !!r.deleted_at); }
+
 function render() {
-  const rows = filteredRows();
+  const nonDeleted = nonDeletedRows();
+  const trashed = deletedRows();
+
   const counts = {};
   TABS.forEach(t => { counts[t.key] = 0; });
-  rows.forEach(r => { if (counts[r.status] !== undefined) counts[r.status]++; });
+  nonDeleted.forEach(r => { if (counts[r.status] !== undefined) counts[r.status]++; });
 
   els.tabBar.innerHTML = TABS.map(t => `
     <button class="tab-btn ${t.key === activeTab ? 'active' : ''}" data-tab="${t.key}">
       ${t.label}<span class="count">${counts[t.key]}</span>
     </button>
-  `).join('');
+  `).join('') + `
+    <button class="tab-btn tab-trash ${activeTab === TRASH_KEY ? 'active' : ''}" data-tab="${TRASH_KEY}">
+      🗑 Trash<span class="count">${trashed.length}</span>
+    </button>
+  `;
 
   els.tabBar.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => { activeTab = btn.dataset.tab; expandedId = null; render(); });
   });
 
-  const tabRows = rows.filter(r => r.status === activeTab);
+  const tabRows = activeTab === TRASH_KEY ? trashed : nonDeleted.filter(r => r.status === activeTab);
 
   if (tabRows.length === 0) {
-    els.list.innerHTML = '<div class="empty-state">No families in this stage right now.</div>';
+    els.list.innerHTML = `<div class="empty-state">${activeTab === TRASH_KEY ? 'Trash is empty.' : 'No families in this stage right now.'}</div>`;
     return;
   }
 
@@ -122,11 +133,13 @@ function render() {
 }
 
 function renderCard(r) {
-  const dateLine = r.status === 'code_sent' || r.status === 'in_progress'
-    ? `Code sent ${formatDate(r.created_at)}`
-    : r.status === 'submitted'
-      ? `Submitted ${formatDate(r.submitted_at)}`
-      : `Decided ${formatDate(r.decided_at)}`;
+  const dateLine = r.deleted_at
+    ? `Moved to Trash ${formatDate(r.deleted_at)}`
+    : r.status === 'code_sent' || r.status === 'in_progress'
+      ? `Code sent ${formatDate(r.created_at)}`
+      : r.status === 'submitted'
+        ? `Submitted ${formatDate(r.submitted_at)}`
+        : `Decided ${formatDate(r.decided_at)}`;
 
   return `
     <div class="family-card" data-id="${r.id}">
@@ -152,10 +165,17 @@ function renderCard(r) {
 function cardActionsHtml(r) {
   const btns = [`<button class="btn-mini" data-action="toggle-detail" data-id="${r.id}">${expandedId === r.id ? 'Hide Details' : 'View Details'}</button>`];
 
+  if (r.deleted_at) {
+    btns.push(`<button class="btn-mini" data-action="restore" data-id="${r.id}">Restore</button>`);
+    if (canHardDelete) {
+      btns.push(`<button class="btn-mini danger" data-action="hard-delete" data-id="${r.id}">Delete Permanently</button>`);
+    }
+    return btns.join('');
+  }
+
   if (r.status === 'code_sent' || r.status === 'in_progress') {
     btns.push(`<button class="btn-mini" data-action="resend" data-id="${r.id}">Resend Code</button>`);
     btns.push(`<button class="btn-mini" data-action="copy" data-id="${r.id}">Copy Code</button>`);
-    btns.push(`<button class="btn-mini danger" data-action="archive" data-id="${r.id}">Archive</button>`);
   }
 
   if (r.status === 'submitted') {
@@ -170,6 +190,7 @@ function cardActionsHtml(r) {
     btns.push(`<button class="btn-mini danger" data-action="declined" data-id="${r.id}">Change to Denied</button>`);
   }
 
+  btns.push(`<button class="btn-mini danger" data-action="trash" data-id="${r.id}">Move to Trash</button>`);
   return btns.join('');
 }
 
@@ -232,11 +253,29 @@ async function handleAction(action, id, tabRows) {
     return;
   }
 
-  if (action === 'archive') {
-    if (!confirm(`Archive ${row.student_full_name}'s record? It will be hidden from the pipeline.`)) return;
+  if (action === 'trash') {
+    if (!confirm(`Move ${row.student_full_name}'s record to Trash? You can restore it later from the Trash tab.`)) return;
     const { error } = await supabaseClient.from('admissions_applications').update({ deleted_at: new Date().toISOString() }).eq('id', id);
-    if (error) { showStatus('Could not archive: ' + error.message, 'error'); return; }
-    showStatus('Record archived.', 'success');
+    if (error) { showStatus('Could not move to trash: ' + error.message, 'error'); return; }
+    showStatus('Moved to Trash.', 'success');
+    await loadData();
+    return;
+  }
+
+  if (action === 'restore') {
+    if (!confirm(`Restore ${row.student_full_name}'s record from Trash?`)) return;
+    const { error } = await supabaseClient.from('admissions_applications').update({ deleted_at: null }).eq('id', id);
+    if (error) { showStatus('Could not restore: ' + error.message, 'error'); return; }
+    showStatus('Record restored.', 'success');
+    await loadData();
+    return;
+  }
+
+  if (action === 'hard-delete') {
+    if (!confirm(`Permanently delete ${row.student_full_name}'s record? This cannot be undone.`)) return;
+    const { error } = await supabaseClient.from('admissions_applications').delete().eq('id', id);
+    if (error) { showStatus('Could not delete: ' + error.message, 'error'); return; }
+    showStatus('Record permanently deleted.', 'success');
     await loadData();
     return;
   }
@@ -265,5 +304,14 @@ els.yearSelect.addEventListener('change', () => {
 (async () => {
   const session = await requireStaffSession();
   if (!session) return;
+
+  const { data: staffRow } = await supabaseClient
+    .from('staff_roles')
+    .select('roles')
+    .eq('email', session.user.email)
+    .maybeSingle();
+  const roles = (staffRow && staffRow.roles) || [];
+  canHardDelete = roles.includes('super_admin') || roles.includes('leader');
+
   await loadData();
 })();

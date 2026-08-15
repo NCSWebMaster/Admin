@@ -58,6 +58,8 @@
   color: var(--white);
 }
 
+.tab-btn.tab-trash { margin-left: auto; }
+
 .family-card {
   background: var(--white);
   border: 1px solid var(--border);
