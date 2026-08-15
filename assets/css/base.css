@@ -153,13 +153,22 @@ button {
 
 .form-input, .form-select {
   width: 100%;
-  padding: 10px 12px;
+  min-width: 0;
+  height: 44px;
+  padding: 0 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
   font-size: 0.95rem;
   font-family: var(--font-body);
   color: var(--ink);
   background: var(--white);
+  box-sizing: border-box;
+}
+
+input[type="date"].form-input {
+  min-width: 0;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .form-input:focus, .form-select:focus {
