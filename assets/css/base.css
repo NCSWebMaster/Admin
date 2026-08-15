@@ -57,6 +57,160 @@ button {
   outline-offset: 2px;
 }
 
+/* --- Shared layout: top nav + page wrap (used by every feature page) --- */
+
+.top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
+}
+
+.top-nav .brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.top-nav .brand img { height: 32px; width: auto; }
+
+.top-nav .nav-right { display: flex; align-items: center; gap: 16px; }
+
+.top-nav a.nav-link {
+  color: var(--ink-soft);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.top-nav a.nav-link:hover { color: var(--red); }
+
+.page-wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+
+.page-header { margin-bottom: 24px; }
+.page-header h1 { font-size: 1.6rem; margin-bottom: 4px; }
+.page-header p { color: var(--ink-soft); margin: 0; }
+
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 28px;
+}
+
+/* --- Shared form components --- */
+
+.form-section-title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  color: var(--red);
+  margin: 0 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.form-section + .form-section { margin-top: 28px; }
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+.form-row.cols-4 { grid-template-columns: 1.6fr 0.7fr 0.5fr 0.7fr; }
+
+@media (max-width: 560px) {
+  .form-row, .form-row.cols-3, .form-row.cols-4 { grid-template-columns: 1fr; }
+}
+
+.form-field { margin-bottom: 16px; }
+
+.form-field label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.form-field .optional-tag {
+  font-weight: 400;
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+}
+
+.form-input, .form-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: var(--white);
+}
+
+.form-input:focus, .form-select:focus {
+  border-color: var(--red);
+}
+
+.btn-secondary {
+  background: var(--white);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.btn-secondary:hover { border-color: var(--bronze); background: var(--cream); }
+
+.btn-text-add {
+  background: none;
+  border: none;
+  color: var(--red);
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 4px 0;
+}
+
+.btn-text-remove {
+  background: none;
+  border: none;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  text-decoration: underline;
+}
+
+.code-display {
+  text-align: center;
+  padding: 24px;
+  background: var(--cream);
+  border-radius: 10px;
+  margin: 20px 0;
+}
+
+.code-display .code {
+  font-family: 'Courier New', monospace;
+  font-size: 2rem;
+  letter-spacing: 4px;
+  color: var(--red);
+  font-weight: bold;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.001ms !important;
