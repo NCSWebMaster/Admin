@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NCS OnePlace — Dashboard</title>
+<link rel="stylesheet" href="/assets/css/base.css?v=1">
+<style>
+  .wrap { max-width: 640px; margin: 80px auto; padding: 0 24px; text-align: center; }
+  .badge { display: inline-block; background: var(--success-bg); color: var(--success); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; margin-top: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Welcome to NCS OnePlace</h1>
+  <p id="who" style="color:var(--ink-soft);"></p>
+  <div class="badge">Signed in &amp; verified</div>
+  <p style="margin-top:32px;"><button id="signout" class="btn-link" type="button" style="border:none;background:none;color:var(--ink-soft);text-decoration:underline;cursor:pointer;">Sign out</button></p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/assets/js/supabase-client.js?v=1"></script>
+<script>
+(async () => {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+
+  if (!session || sessionStorage.getItem('ncs_mfa_verified') !== session.user.id) {
+    window.location.href = '/index.html';
+    return;
+  }
+
+  document.getElementById('who').textContent = session.user.email;
+
+  document.getElementById('signout').addEventListener('click', async () => {
+    await supabaseClient.auth.signOut();
+    sessionStorage.removeItem('ncs_mfa_verified');
+    window.location.href = '/index.html';
+  });
+})();
+</script>
+</body>
+</html>
