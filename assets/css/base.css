@@ -211,6 +211,58 @@ button {
   font-weight: bold;
 }
 
+.code-display .code {
+  font-family: 'Courier New', monospace;
+  font-size: 2rem;
+  letter-spacing: 4px;
+  color: var(--red);
+  font-weight: bold;
+}
+
+/* --- Shared button, status, and spinner (used by every page) --- */
+
+.btn-primary {
+  display: block;
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--red);
+  border: none;
+  border-radius: 8px;
+  color: var(--white);
+  font-size: 1rem;
+  font-weight: 600;
+  transition: background 0.15s ease;
+}
+
+.btn-primary:hover { background: var(--red-dark); }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.status-msg {
+  font-size: 0.85rem;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  display: none;
+}
+
+.status-msg.show { display: block; }
+.status-msg.error { background: var(--error-bg); color: var(--error); }
+.status-msg.success { background: var(--success-bg); color: var(--success); }
+.status-msg.info { background: var(--cream); color: var(--ink-soft); }
+
+.spinner {
+  display: inline-block;
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.001ms !important;

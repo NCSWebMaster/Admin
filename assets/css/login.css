@@ -58,21 +58,6 @@
 
 .btn-google svg { flex-shrink: 0; }
 
-.btn-primary {
-  width: 100%;
-  padding: 12px 16px;
-  background: var(--red);
-  border: none;
-  border-radius: 8px;
-  color: var(--white);
-  font-size: 0.95rem;
-  font-weight: 600;
-  transition: background 0.15s ease;
-}
-
-.btn-primary:hover { background: var(--red-dark); }
-.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-
 .btn-link {
   background: none;
   border: none;
@@ -96,31 +81,5 @@
 
 .mfa-code-input:focus { border-color: var(--red); }
 
-.status-msg {
-  font-size: 0.85rem;
-  border-radius: 8px;
-  padding: 10px 14px;
-  margin-bottom: 16px;
-  display: none;
-}
-
-.status-msg.show { display: block; }
-.status-msg.error { background: var(--error-bg); color: var(--error); }
-.status-msg.success { background: var(--success-bg); color: var(--success); }
-.status-msg.info { background: var(--cream); color: var(--ink-soft); }
-
 .step { display: none; }
 .step.active { display: block; }
-
-.spinner {
-  display: inline-block;
-  width: 16px; height: 16px;
-  border: 2px solid rgba(255,255,255,0.4);
-  border-top-color: currentColor;
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-  vertical-align: middle;
-  margin-right: 8px;
-}
-
-@keyframes spin { to { transform: rotate(360deg); } }
