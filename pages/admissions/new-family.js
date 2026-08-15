@@ -36,6 +36,19 @@ function populateStateSelect(select) {
   select.value = 'CA';
 }
 
+function populateSchoolYearSelect(select) {
+  const now = new Date();
+  // Academic year runs roughly Aug-Jun; offer a window spanning last year through 3 years out
+  const startYear = now.getMonth() >= 6 ? now.getFullYear() - 1 : now.getFullYear() - 2;
+  for (let i = 0; i < 5; i++) {
+    const y = startYear + i;
+    const opt = document.createElement('option');
+    opt.value = `${y}-${y + 1}`;
+    opt.textContent = `${y}-${y + 1}`;
+    select.appendChild(opt);
+  }
+}
+
 function formatPhoneInput(e) {
   let digits = e.target.value.replace(/\D/g, '').slice(0, 10);
   let formatted = digits;
@@ -60,6 +73,7 @@ const els = {
   studentDob: document.getElementById('student-dob'),
   currentGrade: document.getElementById('current-grade'),
   anticipatedGrade: document.getElementById('anticipated-grade'),
+  schoolYear: document.getElementById('school-year'),
 
   parent1Name: document.getElementById('parent1-name'),
   parent1Phone: document.getElementById('parent1-phone'),
@@ -123,6 +137,10 @@ async function handleSubmit(e) {
     showStatus('Student name, date of birth, current grade, and anticipated grade are required.', 'error');
     return;
   }
+  if (!els.schoolYear.value) {
+    showStatus('Select a school year.', 'error');
+    return;
+  }
 
   const parent2Active = els.parent2Block.style.display !== 'none';
 
@@ -134,6 +152,7 @@ async function handleSubmit(e) {
     p_dob: els.studentDob.value,
     p_current_grade: els.currentGrade.value,
     p_anticipated_grade: els.anticipatedGrade.value,
+    p_school_year: els.schoolYear.value,
     p_parent1_name: els.parent1Name.value.trim(),
     p_parent1_email: els.parent1Email.value.trim(),
     p_parent1_phone: els.parent1Phone.value.trim(),
@@ -191,4 +210,5 @@ els.btnAnother.addEventListener('click', resetForm);
   populateGradeSelect(els.currentGrade);
   populateGradeSelect(els.anticipatedGrade);
   populateStateSelect(els.state);
+  populateSchoolYearSelect(els.schoolYear);
 })();
