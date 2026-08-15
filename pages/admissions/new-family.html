@@ -1,1 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>New Interested Family — NCS OnePlace</title>
+<link rel="stylesheet" href="/assets/css/base.css?v=2">
+<link rel="stylesheet" href="/pages/admissions/new-family.css?v=1">
+</head>
+<body>
 
+<nav class="top-nav">
+  <a class="brand" href="/pages/dashboard/index.html">
+    <img src="/assets/img/logo.png" alt="">
+    NCS OnePlace
+  </a>
+  <div class="nav-right">
+    <a class="nav-link" href="/pages/dashboard/index.html">← Dashboard</a>
+  </div>
+</nav>
+
+<div class="page-wrap">
+  <div class="page-header">
+    <h1>New Interested Family</h1>
+    <p>Enter the family &amp; student's basic info to generate an application access code. It's emailed automatically once you submit.</p>
+  </div>
+
+  <div id="status-msg" class="status-msg"></div>
+
+  <div id="form-card" class="card">
+    <form id="family-form" novalidate>
+
+      <div class="form-section">
+        <h2 class="form-section-title">Student</h2>
+        <div class="form-row">
+          <div class="form-field">
+            <label for="student-name">Student full name</label>
+            <input type="text" id="student-name" class="form-input" required>
+          </div>
+          <div class="form-field">
+            <label for="student-dob">Date of birth</label>
+            <input type="date" id="student-dob" class="form-input" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label for="current-grade">Current grade</label>
+            <select id="current-grade" class="form-select" required>
+              <option value="" disabled selected>Select grade</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="anticipated-grade">Anticipated grade at NCS</label>
+            <select id="anticipated-grade" class="form-select" required>
+              <option value="" disabled selected>Select grade</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2 class="form-section-title">Parent / Guardian 1</h2>
+        <div class="form-field">
+          <label for="parent1-name">Full name</label>
+          <input type="text" id="parent1-name" class="form-input" required>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label for="parent1-phone">Phone</label>
+            <input type="tel" id="parent1-phone" class="form-input" placeholder="(000) 000-0000" required>
+          </div>
+          <div class="form-field">
+            <label for="parent1-email">Email</label>
+            <input type="email" id="parent1-email" class="form-input" required>
+          </div>
+        </div>
+
+        <button type="button" id="btn-add-parent2" class="btn-text-add">+ Add a second parent / guardian</button>
+
+        <div id="parent2-block" style="display:none;">
+          <h2 class="form-section-title" style="margin-top:16px;">Parent / Guardian 2</h2>
+          <div class="form-field">
+            <label for="parent2-name">Full name <span class="optional-tag">(optional)</span></label>
+            <input type="text" id="parent2-name" class="form-input">
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label for="parent2-phone">Phone <span class="optional-tag">(optional)</span></label>
+              <input type="tel" id="parent2-phone" class="form-input" placeholder="(000) 000-0000">
+            </div>
+            <div class="form-field">
+              <label for="parent2-email">Email <span class="optional-tag">(optional)</span></label>
+              <input type="email" id="parent2-email" class="form-input">
+            </div>
+          </div>
+          <button type="button" id="btn-remove-parent2" class="btn-text-remove">Remove second parent</button>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2 class="form-section-title">Home Address</h2>
+        <div class="form-field">
+          <label for="address-street">Street</label>
+          <input type="text" id="address-street" class="form-input">
+        </div>
+        <div class="form-row cols-4">
+          <div class="form-field">
+            <label for="address-city">City</label>
+            <input type="text" id="address-city" class="form-input">
+          </div>
+          <div class="form-field">
+            <label for="address-state">State</label>
+            <select id="address-state" class="form-select"></select>
+          </div>
+          <div class="form-field">
+            <label for="address-zip">ZIP</label>
+            <input type="text" id="address-zip" class="form-input" inputmode="numeric" maxlength="10">
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" id="btn-submit" class="btn-primary">Generate code &amp; send email</button>
+    </form>
+  </div>
+
+  <div id="success-card" class="card success-view" style="display:none;">
+    <h2>Code generated &amp; emailed</h2>
+    <p>Share this with the family if needed — it's also on its way to their inbox.</p>
+    <div class="code-display">
+      <div class="code" id="result-code"></div>
+    </div>
+    <p>Sent to <strong id="result-email"></strong> with a link to <strong>apply.northridgecommunityschool.com</strong></p>
+    <button type="button" id="btn-another" class="btn-secondary" style="margin-top:12px;">Add Another Family</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/assets/js/supabase-client.js?v=1"></script>
+<script src="/pages/admissions/new-family.js?v=1"></script>
+</body>
+</html>

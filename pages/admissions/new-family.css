@@ -1,0 +1,12 @@
+/* NCS OnePlace — pages/admissions/new-family.css
+   Fine-tuning specific to the intake form; shared form/card styles live in base.css. */
+
+#parent2-block {
+  border-top: 1px dashed var(--border);
+  padding-top: 16px;
+  margin-top: 4px;
+}
+
+.success-view { text-align: center; }
+.success-view h2 { color: var(--red); font-size: 1.3rem; margin-bottom: 6px; }
+.success-view p { color: var(--ink-soft); }
