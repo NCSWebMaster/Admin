@@ -1,1 +1,126 @@
+/* NCS OnePlace — login.css */
 
+.login-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 40px 32px;
+  text-align: center;
+}
+
+.login-card img.logo {
+  height: 64px;
+  width: auto;
+  margin-bottom: 16px;
+}
+
+.login-card h1 {
+  font-size: 1.4rem;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+.login-card .subtitle {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  margin-bottom: 28px;
+}
+
+.btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--ink);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.btn-google:hover { background: var(--cream); border-color: var(--bronze); }
+.btn-google:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.btn-google svg { flex-shrink: 0; }
+
+.btn-primary {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--red);
+  border: none;
+  border-radius: 8px;
+  color: var(--white);
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: background 0.15s ease;
+}
+
+.btn-primary:hover { background: var(--red-dark); }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  text-decoration: underline;
+  margin-top: 16px;
+}
+
+.mfa-code-input {
+  width: 100%;
+  padding: 14px;
+  font-size: 1.6rem;
+  letter-spacing: 8px;
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-family: var(--font-body);
+}
+
+.mfa-code-input:focus { border-color: var(--red); }
+
+.status-msg {
+  font-size: 0.85rem;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  display: none;
+}
+
+.status-msg.show { display: block; }
+.status-msg.error { background: var(--error-bg); color: var(--error); }
+.status-msg.success { background: var(--success-bg); color: var(--success); }
+.status-msg.info { background: var(--cream); color: var(--ink-soft); }
+
+.step { display: none; }
+.step.active { display: block; }
+
+.spinner {
+  display: inline-block;
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
