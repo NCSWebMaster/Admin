@@ -124,12 +124,12 @@ button {
 
 .form-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 16px;
 }
 
-.form-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
-.form-row.cols-4 { grid-template-columns: 1.6fr 0.7fr 0.5fr 0.7fr; }
+.form-row.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.form-row.cols-4 { grid-template-columns: minmax(0, 1.6fr) minmax(0, 0.7fr) minmax(0, 0.5fr) minmax(0, 0.7fr); }
 
 @media (max-width: 560px) {
   .form-row, .form-row.cols-3, .form-row.cols-4 { grid-template-columns: 1fr; }
