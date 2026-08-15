@@ -1,0 +1,55 @@
+/* NCS OnePlace — pages/admissions/reports.css */
+
+.year-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.year-filter-row label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.year-filter-row select {
+  width: auto;
+  min-width: 160px;
+}
+
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.report-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 22px 18px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+.report-card .report-count {
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.report-card.applied .report-count { color: var(--red); }
+.report-card.accepted .report-count { color: var(--success); }
+.report-card.declined .report-count { color: var(--error); }
+.report-card.waitlisted .report-count,
+.report-card.abandoned .report-count { color: var(--bronze); }
+
+.report-card .report-label {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 8px;
+}

@@ -1,0 +1,205 @@
+/* NCS OnePlace — pages/admissions/pipeline.css
+   Admissions Pipeline: fixed 2-col stage grid, family list cards, sectioned detail view. */
+
+.year-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.year-filter-row label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.year-filter-row select {
+  width: auto;
+  min-width: 160px;
+}
+
+/* Fixed 2-column grid: 6 stage cards = 3 even rows, no auto-wrap drift */
+.stage-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.stage-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px;
+  text-align: left;
+  box-shadow: var(--shadow);
+  transition: border-color 0.15s ease;
+}
+
+.stage-card:hover { border-color: var(--bronze); }
+
+.stage-card.active {
+  border-color: var(--red);
+  border-width: 2px;
+}
+
+.stage-card .stage-count {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--red);
+  line-height: 1;
+}
+
+.stage-card .stage-label {
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+.trash-link-row {
+  text-align: right;
+  margin-bottom: 20px;
+}
+
+.trash-link-row button {
+  background: none;
+  border: none;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  text-decoration: underline;
+}
+
+.trash-link-row button.active { color: var(--red); font-weight: 600; }
+
+.family-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 12px;
+}
+
+.family-card .row-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.family-card .student-name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--ink);
+}
+
+.family-card .meta-line {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  margin-top: 2px;
+}
+
+.status-pill {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.status-pill.code_sent { background: #FDF3E7; color: #A66A1E; }
+.status-pill.in_progress { background: #EAF1FB; color: #2A5FA5; }
+.status-pill.submitted { background: #F3EAFB; color: #6B3FA0; }
+.status-pill.accepted { background: var(--success-bg); color: var(--success); }
+.status-pill.waitlisted { background: #FDF3E7; color: #A66A1E; }
+.status-pill.declined { background: var(--error-bg); color: var(--error); }
+
+.family-card .card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+.btn-mini {
+  background: var(--white);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.btn-mini:hover { border-color: var(--bronze); background: var(--cream); }
+.btn-mini.danger { color: var(--error); }
+.btn-mini.accept { color: var(--success); border-color: var(--success-bg); }
+
+/* --- Sectioned detail panel --- */
+
+.detail-panel {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border);
+  display: none;
+  font-size: 0.88rem;
+  color: var(--ink);
+}
+
+.detail-panel.show { display: block; }
+
+.detail-section + .detail-section { margin-top: 16px; }
+
+.detail-section-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--bronze);
+  margin-bottom: 8px;
+}
+
+.detail-panel dl {
+  display: grid;
+  grid-template-columns: minmax(0, 140px) minmax(0, 1fr);
+  gap: 5px 12px;
+  margin: 0;
+}
+
+.detail-panel dt { color: var(--ink-soft); font-weight: 600; }
+.detail-panel dd { margin: 0; }
+
+.detail-list-item {
+  padding: 6px 10px;
+  background: var(--cream);
+  border-radius: 6px;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+}
+
+.detail-list-item:last-child { margin-bottom: 0; }
+
+.detail-access-code {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.detail-empty {
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--ink-soft);
+}

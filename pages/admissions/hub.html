@@ -4,8 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admissions Hub — NCS OnePlace</title>
-<link rel="stylesheet" href="/assets/css/base.css?v=6">
-<link rel="stylesheet" href="/pages/admissions/hub.css?v=1">
+<link rel="stylesheet" href="/assets/css/base.css?v=7">
 </head>
 <body>
 
@@ -20,41 +19,26 @@
 </nav>
 
 <div class="page-wrap">
-  <div class="page-header hub-header-row">
-    <div>
-      <h1>Admissions Hub</h1>
-      <p>Track interested families from access code through decision, by school year.</p>
-    </div>
-    <a class="btn-cta" href="/pages/admissions/new-family.html">+ New Interested Family</a>
+  <div class="page-header">
+    <h1>Admissions Hub</h1>
+    <p>Add families, track applications, and review outcomes by school year.</p>
   </div>
 
-  <div id="status-msg" class="status-msg"></div>
-
-  <div class="view-toggle">
-    <button id="view-pipeline-btn" class="active" data-view="pipeline">Pipeline</button>
-    <button id="view-reports-btn" data-view="reports">Reports</button>
-  </div>
-
-  <div class="year-filter-row">
-    <label for="year-select">School Year</label>
-    <select id="year-select" class="form-select"><option value="all">All Years</option></select>
-  </div>
-
-  <div id="pipeline-view">
-    <div id="stage-grid" class="stage-grid"></div>
-    <div class="trash-link-row">
-      <button id="trash-toggle-btn" type="button">🗑 Trash (<span id="trash-count">0</span>)</button>
-    </div>
-    <div id="family-list"></div>
-  </div>
-
-  <div id="reports-view" style="display:none;">
-    <div id="report-grid" class="report-grid"></div>
+  <div class="quick-links" style="margin-top:0;">
+    <a class="quick-link-card" href="/pages/admissions/new-family.html">
+      <div class="title">Interested Families →</div>
+      <div class="desc">Enter parent &amp; student info and send an application access code.</div>
+    </a>
+    <a class="quick-link-card" href="/pages/admissions/pipeline.html">
+      <div class="title">Pipeline →</div>
+      <div class="desc">Track families through every stage — codes sent, submitted, decided.</div>
+    </a>
+    <a class="quick-link-card" href="/pages/admissions/reports.html">
+      <div class="title">Reports →</div>
+      <div class="desc">See how many families applied, were admitted, waitlisted, denied, or abandoned.</div>
+    </a>
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/assets/js/supabase-client.js?v=1"></script>
-<script src="/pages/admissions/hub.js?v=1"></script>
 </body>
 </html>
