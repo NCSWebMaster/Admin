@@ -13,10 +13,20 @@ const TABS = [
 
 const GRADE_LABELS = { TK: 'TK', K: 'K', '1': '1st', '2': '2nd', '3': '3rd', '4': '4th', '5': '5th', '6': '6th', '7': '7th', '8': '8th' };
 
-// Detail panel: grouped into readable sections instead of one flat list.
-const DETAIL_SECTIONS = [
+// Detail panel: grouped into mini-cards, laid out in a responsive grid.
+// Student Background is the "wide" card and includes a flagged callout for
+// disciplinary/learning-needs/medical fields so they stand out from routine facts.
+const DETAIL_CARDS = [
   {
-    title: 'Home Address',
+    title: '👪 Second Parent',
+    fields: [
+      ['parent2_name', 'Name'],
+      ['parent2_email', 'Email'],
+      ['parent2_phone', 'Phone'],
+    ],
+  },
+  {
+    title: '🏠 Home Address',
     fields: [
       ['home_address_street', 'Street'],
       ['home_address_city', 'City'],
@@ -25,47 +35,15 @@ const DETAIL_SECTIONS = [
     ],
   },
   {
-    title: 'Second Parent / Guardian',
-    fields: [
-      ['parent2_name', 'Name'],
-      ['parent2_email', 'Email'],
-      ['parent2_phone', 'Phone'],
-    ],
-  },
-  {
-    title: 'Student Background',
-    fields: [
-      ['dob', 'Date of Birth'],
-      ['nickname', 'Nickname'],
-      ['age', 'Age'],
-      ['gender', 'Gender'],
-      ['last_grade_completed', 'Last Grade Completed'],
-      ['repeated_grade', 'Repeated a Grade'],
-      ['repeated_grade_explain', 'Repeated Grade — Details'],
-      ['disciplinary_history', 'Disciplinary History'],
-      ['disciplinary_explain', 'Disciplinary — Details'],
-      ['learning_needs', 'Learning Needs'],
-      ['learning_needs_explain', 'Learning Needs — Details'],
-      ['medical_notes', 'Medical Notes'],
-    ],
-  },
-  {
-    title: 'Church & Referral',
-    fields: [
-      ['church_affiliation', 'Church Affiliation'],
-      ['referral_source', 'Referral Source'],
-    ],
-  },
-  {
-    title: 'Emergency Contact',
+    title: '🚨 Emergency Contact',
     fields: [
       ['emergency_contact_name', 'Name'],
-      ['emergency_contact_relationship', 'Relationship'],
+      ['emergency_contact_relationship', 'Relation'],
       ['emergency_contact_phone', 'Phone'],
     ],
   },
   {
-    title: 'NCS Family Reference',
+    title: '🤝 NCS Reference',
     fields: [
       ['ncs_family_reference_name', 'Name'],
       ['ncs_family_reference_email', 'Email'],
@@ -73,10 +51,10 @@ const DETAIL_SECTIONS = [
     ],
   },
   {
-    title: 'Signature',
+    title: '⛪ Church & Referral',
     fields: [
-      ['signature_name', 'Signed By'],
-      ['signature_date', 'Date'],
+      ['church_affiliation', 'Church'],
+      ['referral_source', 'Referral'],
     ],
   },
 ];
@@ -269,23 +247,47 @@ function formatArrayItem(obj) {
   const parts = Object.entries(obj)
     .filter(([, v]) => v !== null && v !== undefined && v !== '')
     .map(([k, v]) => `${humanizeKey(k)}: ${escapeHtml(String(v))}`);
-  return parts.length ? parts.join(' · ') : '<span class="detail-empty">No details</span>';
+  return parts.length ? parts.join(' · ') : 'No details';
+}
+
+// Combines a Yes/No field with its free-text explanation into one line,
+// e.g. "Yes — has an IEP" instead of two separate label rows.
+function formatYesNoExplain(value, explain) {
+  if (value === null || value === undefined || value === '') return null;
+  const yn = typeof value === 'boolean' ? (value ? 'Yes' : 'No') : escapeHtml(String(value));
+  return explain ? `${yn} — ${escapeHtml(explain)}` : yn;
 }
 
 function renderDetail(r) {
-  let html = '';
+  let cardsHtml = '';
 
-  const timelineRows = [`<dt>Code Sent</dt><dd>${formatDate(r.created_at)}</dd>`];
-  if (r.submitted_at) timelineRows.push(`<dt>Submitted</dt><dd>${formatDate(r.submitted_at)}</dd>`);
-  if (r.decided_at) {
-    timelineRows.push(`<dt>Decided</dt><dd>${formatDate(r.decided_at)}</dd>`);
-  } else if (['accepted', 'waitlisted', 'declined'].includes(r.status)) {
-    timelineRows.push(`<dt>Decided</dt><dd><span class="detail-empty">not tracked before this feature</span></dd>`);
+  // --- Student Background (wide card + flagged callout) ---
+  const bgRows = [];
+  if (r.dob) bgRows.push(`<dt>DOB</dt><dd>${escapeHtml(r.dob)}</dd>`);
+  if (r.nickname) bgRows.push(`<dt>Nickname</dt><dd>${escapeHtml(r.nickname)}</dd>`);
+  if (r.age) bgRows.push(`<dt>Age</dt><dd>${escapeHtml(String(r.age))}</dd>`);
+  if (r.gender) bgRows.push(`<dt>Gender</dt><dd>${escapeHtml(r.gender)}</dd>`);
+  if (r.last_grade_completed) bgRows.push(`<dt>Last Grade</dt><dd>${escapeHtml(r.last_grade_completed)}</dd>`);
+  const repeatedGrade = formatYesNoExplain(r.repeated_grade, r.repeated_grade_explain);
+  if (repeatedGrade) bgRows.push(`<dt>Repeated Grade</dt><dd>${repeatedGrade}</dd>`);
+
+  const flagRows = [];
+  const disciplinary = formatYesNoExplain(r.disciplinary_history, r.disciplinary_explain);
+  if (disciplinary) flagRows.push(`<div class="flag-row"><strong>Disciplinary:</strong> ${disciplinary}</div>`);
+  const learningNeeds = formatYesNoExplain(r.learning_needs, r.learning_needs_explain);
+  if (learningNeeds) flagRows.push(`<div class="flag-row"><strong>Learning Needs:</strong> ${learningNeeds}</div>`);
+  if (r.medical_notes) flagRows.push(`<div class="flag-row"><strong>Medical:</strong> ${escapeHtml(r.medical_notes)}</div>`);
+
+  if (bgRows.length || flagRows.length) {
+    cardsHtml += `<div class="o2-card wide"><div class="sec-title">🎓 Student Background</div>`;
+    if (bgRows.length) cardsHtml += `<dl>${bgRows.join('')}</dl>`;
+    if (flagRows.length) cardsHtml += `<div class="flag-box"><div class="flag-title">🚩 Flag for Admission Review</div>${flagRows.join('')}</div>`;
+    cardsHtml += `</div>`;
   }
-  html += `<div class="detail-section"><div class="detail-section-title">Timeline</div><dl>${timelineRows.join('')}</dl></div>`;
 
-  for (const section of DETAIL_SECTIONS) {
-    const rows = section.fields
+  // --- Standard field-based cards ---
+  for (const card of DETAIL_CARDS) {
+    const rows = card.fields
       .map(([key, label]) => {
         const val = r[key];
         if (val === null || val === undefined || val === '') return null;
@@ -295,28 +297,40 @@ function renderDetail(r) {
       .filter(Boolean);
 
     if (rows.length === 0) continue;
-    html += `<div class="detail-section"><div class="detail-section-title">${section.title}</div><dl>${rows.join('')}</dl></div>`;
+    cardsHtml += `<div class="o2-card"><div class="sec-title">${card.title}</div><dl>${rows.join('')}</dl></div>`;
   }
 
-  if (r.previous_schools && Array.isArray(r.previous_schools) && r.previous_schools.length) {
-    html += `<div class="detail-section"><div class="detail-section-title">Previous Schools</div>` +
-      r.previous_schools.map(s => `<div class="detail-list-item">${formatArrayItem(s)}</div>`).join('') +
-      `</div>`;
+  // --- Schools & Siblings (combined card) ---
+  const schoolChips = (r.previous_schools && Array.isArray(r.previous_schools))
+    ? r.previous_schools.map(s => `<div class="chip-item">${formatArrayItem(s)}</div>`).join('')
+    : '';
+  const siblingChips = (r.siblings && Array.isArray(r.siblings))
+    ? r.siblings.map(s => `<div class="chip-item">Sibling: ${formatArrayItem(s)}</div>`).join('')
+    : '';
+  if (schoolChips || siblingChips) {
+    cardsHtml += `<div class="o2-card"><div class="sec-title">🏫 Schools & Siblings</div>${schoolChips}${siblingChips}</div>`;
   }
 
-  if (r.siblings && Array.isArray(r.siblings) && r.siblings.length) {
-    html += `<div class="detail-section"><div class="detail-section-title">Siblings</div>` +
-      r.siblings.map(s => `<div class="detail-list-item">${formatArrayItem(s)}</div>`).join('') +
-      `</div>`;
+  if (cardsHtml === '') {
+    cardsHtml = '<p class="detail-empty" style="grid-column:1/-1;">No additional details captured yet.</p>';
   }
 
-  if (html === '') {
-    html = '<p class="detail-empty">No additional details captured yet.</p>';
+  // --- Record info footer: signature, timeline, access code ---
+  const signatureLine = r.signature_name
+    ? `Signed by ${escapeHtml(r.signature_name)}${r.signature_date ? ', ' + escapeHtml(r.signature_date) : ''}`
+    : '';
+  const timelineParts = [`Sent ${formatDate(r.created_at)}`];
+  if (r.submitted_at) timelineParts.push(`Submitted ${formatDate(r.submitted_at)}`);
+  if (r.decided_at) {
+    timelineParts.push(`Decided ${formatDate(r.decided_at)}`);
+  } else if (['accepted', 'waitlisted', 'declined'].includes(r.status)) {
+    timelineParts.push(`Decided — not tracked before this feature`);
   }
+  const footerRight = `${timelineParts.join(' · ')} · Code: <strong>${escapeHtml(r.access_code || '—')}</strong>`;
 
-  html += `<div class="detail-access-code">Access Code: <strong>${escapeHtml(r.access_code || '—')}</strong></div>`;
-
-  return html;
+  return `<div class="o2-grid">${cardsHtml}` +
+    `<div class="record-info"><span>${signatureLine}</span><span>${footerRight}</span></div>` +
+    `</div>`;
 }
 
 function escapeHtml(str) {
