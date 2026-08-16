@@ -162,20 +162,6 @@
   padding-top: 12px;
 }
 
-.btn-mini {
-  background: var(--white);
-  border: 1px solid var(--border);
-  color: var(--ink);
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.btn-mini:hover { border-color: var(--bronze); background: var(--cream); }
-.btn-mini.danger { color: var(--error); }
-.btn-mini.accept { color: var(--success); border-color: var(--success-bg); }
-
 .btn-mini.locked {
   color: var(--ink-soft);
   background: var(--cream);
