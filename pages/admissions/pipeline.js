@@ -78,7 +78,7 @@ async function loadData() {
   const { data, error } = await supabaseClient
     .from('admission_families')
     .select(`
-      id, access_code, status, school_year, created_at, submitted_at, decided_at, deleted_at,
+      id, access_code, status, school_year, created_at, submitted_at, deleted_at,
       parent1_name, parent1_email, parent1_phone, parent2_name, parent2_email, parent2_phone,
       home_address_street, home_address_city, home_address_state, home_address_zip,
       church_affiliation, referral_source,
