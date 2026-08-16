@@ -7,6 +7,9 @@
 //   - Stage counts for Admitted/Waitlist/Denied count CHILDREN, not families
 //   - Accept/Waitlist/Deny actions live per child (see child section in detail panel),
 //     not at the top of the family card, since decisions are no longer family-wide
+//   - Each child's card is collapsible (starts collapsed) to keep the detail panel
+//     compact for families with several kids; expand/collapse state persists
+//     across re-renders via expandedChildIds
 // Requires supabase-client.js loaded first.
 
 const TABS = [
@@ -26,6 +29,7 @@ let allRows = [];
 let activeTab = 'code_sent';
 let selectedYear = 'all';
 let expandedId = null;
+let expandedChildIds = new Set();
 let canHardDelete = false;
 let canOverrideDecision = false;
 
@@ -241,24 +245,50 @@ function formatYesNoExplain(value, explain) {
   return explain ? `${yn} — ${escapeHtml(explain)}` : yn;
 }
 
-// One wide card per child: background + flag + schools + decision controls,
-// all together since it's all about that one kid.
+// Independent flex rows (not a shared dl grid) so each label sits right next
+// to its own value — DOB doesn't get pushed out to match "Anticipated Grade"'s
+// column width the way a shared grid-template-columns: max-content 1fr would.
+function fieldRow(label, value) {
+  return `<div class="field-row"><span class="field-label">${label}</span><span class="field-value">${value}</span></div>`;
+}
+
+// Collapsible per-child card: header (name, grade, decision status) always
+// visible; DOB/background/flags/decision buttons only render when expanded.
+// Starts collapsed for every child — expandedChildIds tracks which are open
+// and persists across re-renders (e.g. after a decision update reloads data).
 function renderChildCard(c, familyId) {
+  const isOpen = expandedChildIds.has(c.id);
+  const pillClass = DECISION_PILL_CLASS[c.decision] || 'code_sent';
+  const gradeTag = c.anticipated_grade ? `Grade ${gradeLabel(c.anticipated_grade)}` : '';
+
+  const header = `
+    <div class="student-header" data-action="toggle-child" data-child-id="${c.id}">
+      <span class="sec-title">🎓 ${escapeHtml(c.student_full_name || 'Student')}</span>
+      ${gradeTag ? `<span class="grade-tag">${escapeHtml(gradeTag)}</span>` : ''}
+      <span class="status-pill ${pillClass}">${DECISION_LABELS[c.decision]}</span>
+      <span class="chevron">▼</span>
+    </div>
+  `;
+
+  if (!isOpen) {
+    return `<div class="student-card" data-child-id="${c.id}">${header}</div>`;
+  }
+
   const bgRows = [];
-  if (c.dob) bgRows.push(`<dt>DOB</dt><dd>${escapeHtml(c.dob)}</dd>`);
-  if (c.nickname) bgRows.push(`<dt>Nickname</dt><dd>${escapeHtml(c.nickname)}</dd>`);
-  if (c.age) bgRows.push(`<dt>Age</dt><dd>${escapeHtml(String(c.age))}</dd>`);
-  if (c.gender) bgRows.push(`<dt>Gender</dt><dd>${escapeHtml(c.gender)}</dd>`);
-  if (c.anticipated_grade) bgRows.push(`<dt>Anticipated Grade</dt><dd>${escapeHtml(c.anticipated_grade)}</dd>`);
-  if (c.last_grade_completed) bgRows.push(`<dt>Last Grade</dt><dd>${escapeHtml(c.last_grade_completed)}</dd>`);
+  if (c.dob) bgRows.push(fieldRow('DOB', escapeHtml(c.dob)));
+  if (c.nickname) bgRows.push(fieldRow('Nickname', escapeHtml(c.nickname)));
+  if (c.age) bgRows.push(fieldRow('Age', escapeHtml(String(c.age))));
+  if (c.gender) bgRows.push(fieldRow('Gender', escapeHtml(c.gender)));
+  if (c.anticipated_grade) bgRows.push(fieldRow('Anticipated Grade', escapeHtml(c.anticipated_grade)));
+  if (c.last_grade_completed) bgRows.push(fieldRow('Last Grade', escapeHtml(c.last_grade_completed)));
   const repeatedGrade = formatYesNoExplain(c.repeated_grade, c.repeated_grade_explain);
-  if (repeatedGrade) bgRows.push(`<dt>Repeated Grade</dt><dd>${repeatedGrade}</dd>`);
+  if (repeatedGrade) bgRows.push(fieldRow('Repeated Grade', repeatedGrade));
 
   const schools = Array.isArray(c.previous_schools) ? c.previous_schools : [];
   schools.forEach((s, i) => {
     const label = schools.length > 1 ? `School ${i + 1}` : 'Previous School';
     const parts = [s.name, [s.city, s.state].filter(Boolean).join(', ')].filter(Boolean);
-    if (parts.length) bgRows.push(`<dt>${label}</dt><dd>${escapeHtml(parts.join(' · '))}</dd>`);
+    if (parts.length) bgRows.push(fieldRow(label, escapeHtml(parts.join(' · '))));
   });
 
   const flagRows = [];
@@ -268,8 +298,7 @@ function renderChildCard(c, familyId) {
   if (learningNeeds) flagRows.push(`<div class="flag-row"><strong>Learning Needs:</strong> ${learningNeeds}</div>`);
   if (c.medical_notes) flagRows.push(`<div class="flag-row"><strong>Medical:</strong> ${escapeHtml(c.medical_notes)}</div>`);
 
-  const pillClass = DECISION_PILL_CLASS[c.decision] || 'code_sent';
-  const decidedLine = c.decided_at ? `<span style="font-size:0.75rem;color:var(--ink-soft);margin-left:8px;">${formatDate(c.decided_at)}</span>` : '';
+  const decidedLine = c.decided_at ? `<span style="font-size:0.75rem;color:var(--ink-soft);">${formatDate(c.decided_at)}</span>` : '';
 
   let decisionControls;
   if (c.decision === 'accepted' && !canOverrideDecision) {
@@ -291,14 +320,15 @@ function renderChildCard(c, familyId) {
   }
 
   return `
-    <div class="o2-card wide">
-      <div class="sec-title">🎓 ${escapeHtml(c.student_full_name || 'Student')}</div>
-      ${bgRows.length ? `<dl>${bgRows.join('')}</dl>` : ''}
-      ${flagRows.length ? `<div class="flag-box"><div class="flag-title">🚩 Flag for Admission Review</div>${flagRows.join('')}</div>` : ''}
-      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;align-items:center;flex-wrap:wrap;gap:8px;">
-        <span class="status-pill ${pillClass}">${DECISION_LABELS[c.decision]}</span>
-        ${decidedLine}
-        <span style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">${decisionControls}</span>
+    <div class="student-card open" data-child-id="${c.id}">
+      ${header}
+      <div class="student-body-inner">
+        ${bgRows.length ? bgRows.join('') : '<p class="detail-empty">No additional details captured yet.</p>'}
+        ${flagRows.length ? `<div class="flag-box"><div class="flag-title">🚩 Flag for Admission Review</div>${flagRows.join('')}</div>` : ''}
+        <div class="decision-row">
+          ${decidedLine}
+          <span style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">${decisionControls}</span>
+        </div>
       </div>
     </div>
   `;
@@ -385,6 +415,17 @@ async function handleAction(btn, tabRows) {
 
   if (action === 'child-decision') {
     await handleChildDecision(Number(btn.dataset.childId), Number(btn.dataset.familyId), btn.dataset.decision, tabRows);
+    return;
+  }
+
+  if (action === 'toggle-child') {
+    const childId = Number(btn.dataset.childId);
+    if (expandedChildIds.has(childId)) {
+      expandedChildIds.delete(childId);
+    } else {
+      expandedChildIds.add(childId);
+    }
+    render();
     return;
   }
 

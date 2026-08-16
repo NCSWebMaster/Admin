@@ -254,6 +254,82 @@
 .o2-card dt::after { content: ":"; }
 .o2-card dd { margin: 0; }
 
+/* --- Collapsible student cards ---
+   Header (name, grade, decision status) always visible; body only renders
+   when expanded — pipeline.js only emits the inner markup when the card is
+   open, so there's nothing to hide/show via CSS beyond the header state. */
+
+.student-card {
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.student-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.student-header .sec-title {
+  margin-bottom: 0;
+}
+
+.student-header .grade-tag {
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.student-header .status-pill {
+  margin-left: auto;
+}
+
+.student-header .chevron {
+  color: var(--bronze);
+  font-size: 0.75rem;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.student-card.open .chevron {
+  transform: rotate(180deg);
+}
+
+.student-body-inner {
+  padding: 0 14px 14px;
+}
+
+/* Independent flex rows (not a shared dl grid) so each label sits right
+   next to its own value — see fieldRow() in pipeline.js. */
+.field-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 0.82rem;
+  margin-bottom: 6px;
+}
+
+.field-row:last-child { margin-bottom: 0; }
+.field-label { color: var(--ink-soft); font-weight: 600; white-space: nowrap; }
+.field-label::after { content: ":"; }
+.field-value { color: var(--ink); }
+
+.decision-row {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .flag-box {
   background: var(--error-bg);
   border: 1px solid #F3C9C6;
