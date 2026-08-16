@@ -336,6 +336,23 @@ input[type="date"].form-input {
 .list-row .row-desc { color: var(--ink-soft); font-size: 0.76rem; margin-top: 1px; }
 .list-row .chevron { color: var(--ink-soft); font-size: 0.9rem; flex-shrink: 0; }
 
+/* --- Shared compact button (used across admissions, budgets, etc.) --- */
+
+.btn-mini {
+  background: var(--white);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: inherit;
+}
+
+.btn-mini:hover { border-color: var(--bronze); background: var(--cream); }
+.btn-mini.danger { color: var(--error); }
+.btn-mini.accept { color: var(--success); border-color: var(--success-bg); }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.001ms !important;
