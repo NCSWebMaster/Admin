@@ -86,6 +86,7 @@ let activeTab = 'code_sent';
 let selectedYear = 'all';
 let expandedId = null;
 let canHardDelete = false;
+let canOverrideDecision = false;
 
 const TRASH_KEY = 'trash';
 
@@ -190,25 +191,27 @@ function render() {
 }
 
 function renderCard(r) {
-  const dateLine = r.deleted_at
-    ? `Moved to Trash ${formatDate(r.deleted_at)}`
-    : r.status === 'code_sent' || r.status === 'in_progress'
-      ? `Code sent ${formatDate(r.created_at)}`
-      : r.status === 'submitted'
-        ? `Submitted ${formatDate(r.submitted_at)}`
-        : `Decided ${formatDate(r.decided_at)}`;
+  const currentGradeChip = r.current_grade
+    ? `<span class="chip">${gradeLabel(r.current_grade)}</span>`
+    : `<span class="chip missing">Current grade not recorded</span>`;
 
   return `
     <div class="family-card" data-id="${r.id}">
-      <div class="row-top">
-        <div>
-          <div class="student-name">${escapeHtml(r.student_full_name || 'Unnamed Student')}</div>
-          <div class="meta-line">${gradeLabel(r.current_grade)} → ${gradeLabel(r.anticipated_grade)} · ${escapeHtml(r.school_year || '—')}</div>
-          <div class="meta-line">${escapeHtml(r.parent1_name || '—')} · ${escapeHtml(r.parent1_email || '—')} · ${escapeHtml(r.parent1_phone || '—')}</div>
-          <div class="meta-line">${dateLine}</div>
-        </div>
+      <div class="card-head">
+        <div class="student-name">${escapeHtml(r.student_full_name || 'Unnamed Student')}</div>
         <span class="status-pill ${r.status}">${TABS.find(t => t.key === r.status)?.label || r.status}</span>
       </div>
+      <div class="chips">
+        ${currentGradeChip}
+        <span class="chip">→ ${gradeLabel(r.anticipated_grade)}</span>
+        <span class="chip">${escapeHtml(r.school_year || '—')}</span>
+      </div>
+      <div class="contact-box">
+        <span class="icon">👤</span><span class="value">${escapeHtml(r.parent1_name || '—')}</span>
+        <span class="icon">✉️</span><span class="value">${escapeHtml(r.parent1_email || '—')}</span>
+        <span class="icon">📞</span><span class="value">${escapeHtml(r.parent1_phone || '—')}</span>
+      </div>
+      ${r.deleted_at ? `<div class="meta-line">Moved to Trash ${formatDate(r.deleted_at)}</div>` : ''}
       <div class="card-actions">
         ${cardActionsHtml(r)}
       </div>
@@ -242,12 +245,20 @@ function cardActionsHtml(r) {
   }
 
   if (['accepted', 'waitlisted', 'declined'].includes(r.status)) {
-    btns.push(`<button class="btn-mini" data-action="accepted" data-id="${r.id}">Change to Admitted</button>`);
-    btns.push(`<button class="btn-mini" data-action="waitlisted" data-id="${r.id}">Change to Waitlisted</button>`);
-    btns.push(`<button class="btn-mini danger" data-action="declined" data-id="${r.id}">Change to Denied</button>`);
+    if (r.status === 'accepted' && !canOverrideDecision) {
+      btns.push(`<span class="btn-mini locked">Admitted 🔒</span>`);
+    } else {
+      const otherOptions = TABS.filter(t => ['accepted', 'waitlisted', 'declined'].includes(t.key) && t.key !== r.status);
+      btns.push(`
+        <select class="btn-mini decision-select" data-role="decision-select" data-id="${r.id}">
+          <option value="" selected disabled>Change decision…</option>
+          ${otherOptions.map(t => `<option value="${t.key}">${t.label}</option>`).join('')}
+        </select>
+      `);
+    }
   }
 
-  btns.push(`<button class="btn-mini danger" data-action="trash" data-id="${r.id}">Move to Trash</button>`);
+  btns.push(`<button class="icon-btn-trash" data-action="trash" data-id="${r.id}" title="Move to Trash">🗑</button>`);
   return btns.join('');
 }
 
@@ -263,6 +274,15 @@ function formatArrayItem(obj) {
 
 function renderDetail(r) {
   let html = '';
+
+  const timelineRows = [`<dt>Code Sent</dt><dd>${formatDate(r.created_at)}</dd>`];
+  if (r.submitted_at) timelineRows.push(`<dt>Submitted</dt><dd>${formatDate(r.submitted_at)}</dd>`);
+  if (r.decided_at) {
+    timelineRows.push(`<dt>Decided</dt><dd>${formatDate(r.decided_at)}</dd>`);
+  } else if (['accepted', 'waitlisted', 'declined'].includes(r.status)) {
+    timelineRows.push(`<dt>Decided</dt><dd><span class="detail-empty">not tracked before this feature</span></dd>`);
+  }
+  html += `<div class="detail-section"><div class="detail-section-title">Timeline</div><dl>${timelineRows.join('')}</dl></div>`;
 
   for (const section of DETAIL_SECTIONS) {
     const rows = section.fields
@@ -308,6 +328,13 @@ function escapeHtml(str) {
 function attachCardHandlers(tabRows) {
   els.list.querySelectorAll('[data-action]').forEach(btn => {
     btn.addEventListener('click', () => handleAction(btn.dataset.action, Number(btn.dataset.id), tabRows));
+  });
+  els.list.querySelectorAll('select[data-role="decision-select"]').forEach(sel => {
+    sel.addEventListener('change', () => {
+      const chosen = sel.value;
+      sel.value = '';
+      handleAction(chosen, Number(sel.dataset.id), tabRows);
+    });
   });
 }
 
@@ -404,6 +431,7 @@ els.trashToggleBtn.addEventListener('click', () => {
     .maybeSingle();
   const roles = (staffRow && staffRow.roles) || [];
   canHardDelete = roles.includes('super_admin') || roles.includes('leader');
+  canOverrideDecision = roles.includes('super_admin') || roles.includes('leader');
 
   await loadData();
 })();

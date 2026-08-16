@@ -82,12 +82,11 @@
   margin-bottom: 12px;
 }
 
-.family-card .row-top {
+.family-card .card-head {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
 }
 
 .family-card .student-name {
@@ -97,10 +96,46 @@
   color: var(--ink);
 }
 
+.chips {
+  display: flex;
+  gap: 6px;
+  margin: 10px 0 12px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 9px;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+.chip.missing {
+  font-style: italic;
+  color: #B8AFA6;
+}
+
+.contact-box {
+  background: var(--cream);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  row-gap: 4px;
+  column-gap: 8px;
+  align-items: center;
+}
+
+.contact-box .icon { color: var(--bronze); }
+.contact-box .value { font-weight: 700; color: var(--ink); }
+
 .family-card .meta-line {
   color: var(--ink-soft);
-  font-size: 0.85rem;
-  margin-top: 2px;
+  font-size: 0.82rem;
+  margin-top: 10px;
 }
 
 .status-pill {
@@ -140,6 +175,37 @@
 .btn-mini:hover { border-color: var(--bronze); background: var(--cream); }
 .btn-mini.danger { color: var(--error); }
 .btn-mini.accept { color: var(--success); border-color: var(--success-bg); }
+
+.btn-mini.locked {
+  color: var(--ink-soft);
+  background: var(--cream);
+  cursor: not-allowed;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.decision-select {
+  -webkit-appearance: none;
+  appearance: none;
+  font-family: inherit;
+}
+
+.icon-btn-trash {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.icon-btn-trash:hover { border-color: var(--error); color: var(--error); background: var(--error-bg); }
 
 /* --- Sectioned detail panel --- */
 
