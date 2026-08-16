@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admission Leads — NCS OnePlace</title>
+<link rel="stylesheet" href="/assets/css/base.css?v=9">
+<link rel="stylesheet" href="/pages/admissions/hub.css">
+<link rel="stylesheet" href="/pages/admissions/leads.css?v=1">
+</head>
+<body>
+
+<nav class="top-nav">
+  <a class="brand" href="/pages/dashboard/index.html">
+    <img src="/assets/img/logo.png" alt="">
+    NCS OnePlace
+  </a>
+  <div class="nav-right">
+    <a class="nav-link" href="/pages/admissions/hub.html">← Admissions Hub</a>
+  </div>
+</nav>
+
+<div class="page-wrap">
+  <div class="page-header">
+    <h1>Admission Leads</h1>
+    <p>Prospective family inquiries submitted from the "Interested? Get More Info Now!" form on the public website.</p>
+  </div>
+
+  <div class="status-msg" id="statusMsg"></div>
+
+  <div class="stage-grid" id="stageGrid">
+    <button type="button" class="stage-card filterable active" data-filter="all">
+      <div class="stage-count" id="countAll">–</div>
+      <div class="stage-label">All Leads</div>
+    </button>
+    <button type="button" class="stage-card filterable" data-filter="New">
+      <div class="stage-count" id="countNew">–</div>
+      <div class="stage-label">New</div>
+    </button>
+    <button type="button" class="stage-card filterable" data-filter="Contacted">
+      <div class="stage-count" id="countContacted">–</div>
+      <div class="stage-label">Contacted</div>
+    </button>
+    <button type="button" class="stage-card filterable" data-filter="Applied">
+      <div class="stage-count" id="countApplied">–</div>
+      <div class="stage-label">Applied</div>
+    </button>
+    <button type="button" class="stage-card filterable" data-filter="Enrolled">
+      <div class="stage-count" id="countEnrolled">–</div>
+      <div class="stage-label">Enrolled</div>
+    </button>
+    <button type="button" class="stage-card filterable" data-filter="Closed">
+      <div class="stage-count" id="countClosed">–</div>
+      <div class="stage-label">Closed</div>
+    </button>
+  </div>
+
+  <div id="leadsList"></div>
+
+  <div class="empty-state" id="emptyState" style="display:none;">
+    No leads match this filter yet.
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/assets/js/supabase-client.js?v=1"></script>
+<script>
+(async () => {
+  const statusMsg = document.getElementById('statusMsg');
+  const leadsList = document.getElementById('leadsList');
+  const emptyState = document.getElementById('emptyState');
+  const stageGrid = document.getElementById('stageGrid');
+
+  function showError(msg) {
+    statusMsg.textContent = msg;
+    statusMsg.className = 'status-msg error show';
+  }
+
+  const { data: { session } } = await supabaseClient.auth.getSession();
+
+  if (!session || sessionStorage.getItem('ncs_mfa_verified') !== session.user.id) {
+    window.location.href = '/index.html';
+    return;
+  }
+
+  const { data: staffRow } = await supabaseClient
+    .from('staff_roles')
+    .select('roles')
+    .eq('email', session.user.email)
+    .maybeSingle();
+
+  const roles = (staffRow && staffRow.roles) || [];
+  const allowed = ['super_admin', 'leader', 'pureAdmissions', 'staff'];
+  const hasAccess = roles.some(r => allowed.includes(r));
+
+  if (!hasAccess) {
+    window.location.href = '/pages/admissions/hub.html';
+    return;
+  }
+
+  let allLeads = [];
+  let activeFilter = 'all';
+
+  function statusClass(status) {
+    return 'lead-' + status.toLowerCase();
+  }
+
+  function formatDate(iso) {
+    const d = new Date(iso);
+    return d.toLocaleString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric',
+      hour: 'numeric', minute: '2-digit'
+    });
+  }
+
+  function renderCounts() {
+    const counts = { New: 0, Contacted: 0, Applied: 0, Enrolled: 0, Closed: 0 };
+    allLeads.forEach(l => { if (counts[l.status] !== undefined) counts[l.status]++; });
+    document.getElementById('countAll').textContent = allLeads.length;
+    document.getElementById('countNew').textContent = counts.New;
+    document.getElementById('countContacted').textContent = counts.Contacted;
+    document.getElementById('countApplied').textContent = counts.Applied;
+    document.getElementById('countEnrolled').textContent = counts.Enrolled;
+    document.getElementById('countClosed').textContent = counts.Closed;
+  }
+
+  function renderList() {
+    const filtered = activeFilter === 'all'
+      ? allLeads
+      : allLeads.filter(l => l.status === activeFilter);
+
+    leadsList.innerHTML = '';
+
+    if (filtered.length === 0) {
+      emptyState.style.display = 'block';
+      return;
+    }
+    emptyState.style.display = 'none';
+
+    filtered.forEach(lead => {
+      const card = document.createElement('div');
+      card.className = 'family-card';
+
+      const gradeText = lead.grade_applying_for || 'Not specified';
+
+      card.innerHTML = `
+        <div class="row-top">
+          <div>
+            <div class="student-name">${lead.student_name}</div>
+            <div class="meta-line">Parent/Guardian: ${lead.parent_name}</div>
+            <div class="meta-line">Grade Applying For: ${gradeText}</div>
+            <div class="meta-line">Submitted: ${formatDate(lead.created_at)}</div>
+          </div>
+          <span class="status-pill ${statusClass(lead.status)}">${lead.status}</span>
+        </div>
+        <div class="card-actions">
+          <button type="button" class="btn-mini toggle-detail">View Details</button>
+        </div>
+        <div class="detail-panel">
+          <dl>
+            <dt>Email</dt><dd>${lead.email}</dd>
+            <dt>Phone</dt><dd>${lead.phone}</dd>
+          </dl>
+          <div class="lead-status-row" style="margin-top:14px;">
+            <label for="status-${lead.id}" class="sr-only">Update status</label>
+            <select id="status-${lead.id}" class="form-select lead-status-select">
+              <option value="New">New</option>
+              <option value="Contacted">Contacted</option>
+              <option value="Applied">Applied</option>
+              <option value="Enrolled">Enrolled</option>
+              <option value="Closed">Closed</option>
+            </select>
+            <button type="button" class="btn-mini accept save-status">Save Status</button>
+          </div>
+          <div class="metadata-note">
+            Submitted IP: ${lead.submitted_ip || 'Not recorded'}<br>
+            User Agent: ${lead.user_agent || 'Not recorded'}
+          </div>
+        </div>
+      `;
+
+      card.querySelector(`#status-${lead.id}`).value = lead.status;
+
+      card.querySelector('.toggle-detail').addEventListener('click', () => {
+        card.querySelector('.detail-panel').classList.toggle('show');
+      });
+
+      card.querySelector('.save-status').addEventListener('click', async (e) => {
+        const btn = e.target;
+        const select = card.querySelector(`#status-${lead.id}`);
+        const newStatus = select.value;
+
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+
+        const { error } = await supabaseClient
+          .from('admission_leads')
+          .update({ status: newStatus })
+          .eq('id', lead.id);
+
+        if (error) {
+          showError('Could not update status. Please try again.');
+          btn.disabled = false;
+          btn.textContent = 'Save Status';
+          return;
+        }
+
+        lead.status = newStatus;
+        renderCounts();
+        renderList();
+      });
+
+      leadsList.appendChild(card);
+    });
+  }
+
+  async function loadLeads() {
+    const { data, error } = await supabaseClient
+      .from('admission_leads')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      showError('Could not load admission leads.');
+      return;
+    }
+
+    allLeads = data || [];
+    renderCounts();
+    renderList();
+  }
+
+  stageGrid.addEventListener('click', (e) => {
+    const btn = e.target.closest('.stage-card');
+    if (!btn) return;
+    stageGrid.querySelectorAll('.stage-card').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.filter;
+    renderList();
+  });
+
+  await loadLeads();
+})();
+</script>
+</body>
+</html>

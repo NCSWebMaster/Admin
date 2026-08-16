@@ -1,0 +1,42 @@
+/* NCS OnePlace — pages/admissions/leads.css
+   Admission Leads: public-site "Interested?" inquiries.
+   Loaded alongside base.css and hub.css — reuses stage-grid/family-card/
+   status-pill/detail-panel patterns from hub.css and only adds what's new. */
+
+.status-pill.lead-new { background: #EAF1FB; color: #2A5FA5; }
+.status-pill.lead-contacted { background: #FDF3E7; color: #A66A1E; }
+.status-pill.lead-applied { background: #F3EAFB; color: #6B3FA0; }
+.status-pill.lead-enrolled { background: var(--success-bg); color: var(--success); }
+.status-pill.lead-closed { background: var(--error-bg); color: var(--error); }
+
+.lead-status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.lead-status-select {
+  width: auto;
+  min-width: 140px;
+  height: 36px;
+  font-size: 0.82rem;
+}
+
+.metadata-note {
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+  word-break: break-word;
+}
+
+.stage-card.filterable {
+  cursor: pointer;
+}
+
+.stage-card.filterable:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
