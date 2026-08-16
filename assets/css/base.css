@@ -296,6 +296,46 @@ input[type="date"].form-input {
 .quick-link-card .title { font-weight: 600; color: var(--red); font-size: 0.95rem; }
 .quick-link-card .desc { color: var(--ink-soft); font-size: 0.85rem; margin-top: 2px; }
 
+/* --- Shared list-row navigation (compact alternative to card tiles) --- */
+
+.list-container {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.list-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  text-decoration: none;
+  color: var(--ink);
+  border-bottom: 1px solid var(--border);
+}
+
+.list-row:last-child { border-bottom: none; }
+.list-row:hover { background: var(--cream); }
+
+.list-row .icon-box {
+  width: 32px;
+  height: 32px;
+  border-radius: 7px;
+  background: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.list-row .row-text { flex: 1; min-width: 0; }
+.list-row .row-title { font-weight: 600; font-size: 0.88rem; color: var(--ink); }
+.list-row .row-desc { color: var(--ink-soft); font-size: 0.76rem; margin-top: 1px; }
+.list-row .chevron { color: var(--ink-soft); font-size: 0.9rem; flex-shrink: 0; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.001ms !important;
