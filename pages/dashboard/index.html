@@ -58,6 +58,22 @@
       </div>
       <span class="chevron">›</span>
     </a>
+    <a class="list-row" id="row-budgets" href="/pages/budgets/hub.html" style="display:none;">
+      <span class="icon-box">💰</span>
+      <div class="row-text">
+        <div class="row-title">NCS Room Budgets</div>
+        <div class="row-desc">Room Mom &amp; Teacher spending</div>
+      </div>
+      <span class="chevron">›</span>
+    </a>
+    <a class="list-row" id="row-admin" href="/pages/admin/hub.html" style="display:none;">
+      <span class="icon-box">⚙️</span>
+      <div class="row-text">
+        <div class="row-title">Admin Management</div>
+        <div class="row-desc">Staff accounts &amp; system settings</div>
+      </div>
+      <span class="chevron">›</span>
+    </a>
   </div>
 </div>
 
@@ -76,7 +92,7 @@
 
   const { data: staffRow } = await supabaseClient
     .from('staff_roles')
-    .select('first_name, last_name')
+    .select('first_name, last_name, roles')
     .eq('email', session.user.email)
     .maybeSingle();
 
@@ -86,6 +102,14 @@
     document.getElementById('avatar').textContent = initials.toUpperCase() || '–';
   } else {
     document.getElementById('avatar').textContent = session.user.email.slice(0, 2).toUpperCase();
+  }
+
+  const roles = (staffRow && staffRow.roles) || [];
+  if (roles.includes('staff') || roles.includes('leader') || roles.includes('super_admin') || roles.includes('board_member')) {
+    document.getElementById('row-budgets').style.display = 'flex';
+  }
+  if (roles.includes('super_admin')) {
+    document.getElementById('row-admin').style.display = 'flex';
   }
 
   document.getElementById('signout').addEventListener('click', async () => {
