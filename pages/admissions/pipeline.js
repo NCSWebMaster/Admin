@@ -290,25 +290,30 @@ function renderDetail(r) {
     cardsHtml += `<div class="o2-card"><div class="sec-title">${card.title}</div><dl>${rows.join('')}</dl></div>`;
   }
 
-  // --- Previous Schools (own card, same dt/dd format as everything else) ---
+  // --- Previous Schools: one card per school, fields as individual rows —
+  // same "one entity, each field its own line" shape as Emergency Contact
+  // or NCS Reference, not a single card listing multiple schools.
   const schools = Array.isArray(r.previous_schools) ? r.previous_schools : [];
-  if (schools.length) {
-    const schoolRows = schools.map((s, i) => {
-      const parts = [s.name, [s.city, s.state].filter(Boolean).join(', ')].filter(Boolean);
-      return `<dt>School ${i + 1}</dt><dd>${escapeHtml(parts.join(' · ') || 'No details')}</dd>`;
-    }).join('');
-    cardsHtml += `<div class="o2-card"><div class="sec-title">🏫 Previous Schools</div><dl>${schoolRows}</dl></div>`;
-  }
+  schools.forEach((s, i) => {
+    const rows = [];
+    if (s.name) rows.push(`<dt>Name</dt><dd>${escapeHtml(s.name)}</dd>`);
+    if (s.city) rows.push(`<dt>City</dt><dd>${escapeHtml(s.city)}</dd>`);
+    if (s.state) rows.push(`<dt>State</dt><dd>${escapeHtml(s.state)}</dd>`);
+    if (!rows.length) return;
+    const title = schools.length > 1 ? `Previous School ${i + 1}` : 'Previous School';
+    cardsHtml += `<div class="o2-card"><div class="sec-title">🏫 ${title}</div><dl>${rows.join('')}</dl></div>`;
+  });
 
-  // --- Siblings (own card, same dt/dd format as everything else) ---
+  // --- Siblings: one card per sibling, same pattern as above ---
   const siblings = Array.isArray(r.siblings) ? r.siblings : [];
-  if (siblings.length) {
-    const siblingRows = siblings.map((s, i) => {
-      const parts = [s.name, s.age ? `Age ${s.age}` : ''].filter(Boolean);
-      return `<dt>Sibling ${i + 1}</dt><dd>${escapeHtml(parts.join(' · ') || 'No details')}</dd>`;
-    }).join('');
-    cardsHtml += `<div class="o2-card"><div class="sec-title">👨‍👩‍👧 Siblings</div><dl>${siblingRows}</dl></div>`;
-  }
+  siblings.forEach((s, i) => {
+    const rows = [];
+    if (s.name) rows.push(`<dt>Name</dt><dd>${escapeHtml(s.name)}</dd>`);
+    if (s.age) rows.push(`<dt>Age</dt><dd>${escapeHtml(String(s.age))}</dd>`);
+    if (!rows.length) return;
+    const title = siblings.length > 1 ? `Sibling ${i + 1}` : 'Sibling';
+    cardsHtml += `<div class="o2-card"><div class="sec-title">👨‍👩‍👧 ${title}</div><dl>${rows.join('')}</dl></div>`;
+  });
 
   if (cardsHtml === '') {
     cardsHtml = '<p class="detail-empty" style="grid-column:1/-1;">No additional details captured yet.</p>';
