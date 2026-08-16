@@ -74,11 +74,7 @@
 
 .trash-link-row button.active { color: var(--red); font-weight: 600; }
 
-/* container-type here (not on detail-panel/o2-grid) so the grid below
-   responds to this card's actual rendered width — accurate in narrower
-   layouts too, not just raw device width. */
 .family-card {
-  container-type: inline-size;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -197,7 +193,7 @@
 
 .icon-btn-trash:hover { border-color: var(--error); color: var(--error); background: var(--error-bg); }
 
-/* --- Detail panel: mini-card grid --- */
+/* --- Detail panel: full-width stacked cards --- */
 
 .detail-panel {
   margin-top: 14px;
@@ -210,22 +206,15 @@
 
 .detail-panel.show { display: block; }
 
-/* Was: repeat(auto-fit, minmax(180px, 1fr)) — produced an unpredictable
-   column count at iPad/desktop widths, causing ragged rows. Explicit
-   breakpoints via container query instead, keyed to the family-card's
-   own width (see .family-card { container-type } above). */
+/* Single column, always — every card (student cards, Home Address,
+   Emergency Contact, NCS Reference, Church & Referral, etc.) stacks
+   full width at the same width instead of packing into a responsive
+   1/2/3-column grid. Simpler and avoids narrow cards floating next
+   to empty space at wider viewports. */
 .o2-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 10px;
-}
-
-@container (min-width: 560px) {
-  .o2-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
-@container (min-width: 860px) {
-  .o2-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
 .o2-card {
@@ -233,8 +222,11 @@
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 12px 14px;
+  width: 100%;
 }
 
+/* .wide no longer changes anything (grid is already single-column) —
+   left in place since pipeline.js still applies the class to child cards. */
 .o2-card.wide { grid-column: 1 / -1; }
 
 .o2-card .sec-title {
@@ -249,9 +241,6 @@
   margin-bottom: 8px;
 }
 
-/* Was: minmax(0, 90px) label column — hard cap forced labels like
-   "Repeated Grade" to wrap mid-word. max-content + nowrap sizes the
-   label column to its content instead; only values wrap now. */
 .o2-card dl {
   display: grid;
   grid-template-columns: max-content 1fr;
