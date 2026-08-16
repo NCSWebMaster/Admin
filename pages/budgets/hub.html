@@ -40,7 +40,9 @@
     <div class="form-row">
       <div class="form-field">
         <label>Room / Grade Name</label>
-        <input type="text" class="form-input add-owner-name" placeholder="e.g. TK Room Mom">
+        <select class="form-select add-owner-name" id="room-select-input">
+          <option value="" disabled selected>Select room</option>
+        </select>
       </div>
       <div class="form-field">
         <label>School Year</label>
@@ -64,7 +66,9 @@
     <div class="form-row">
       <div class="form-field">
         <label>Teacher Name</label>
-        <input type="text" class="form-input add-owner-name" placeholder="e.g. Amber Perez">
+        <select class="form-select add-owner-name" id="teacher-select-input">
+          <option value="" disabled selected>Select teacher</option>
+        </select>
       </div>
       <div class="form-field">
         <label>School Year</label>
@@ -83,6 +87,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/assets/js/supabase-client.js?v=1"></script>
-<script src="/pages/budgets/hub.js?v=2"></script>
+<script src="/pages/budgets/hub.js?v=3"></script>
 </body>
 </html>

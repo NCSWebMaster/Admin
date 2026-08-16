@@ -10,6 +10,30 @@ let canManage = false;
 let canDeleteExpense = false;
 let openExpenseFormId = null;
 
+function populateRoomSelect() {
+  const select = document.getElementById('room-select-input');
+  for (let i = 1; i <= 15; i++) {
+    const opt = document.createElement('option');
+    opt.value = `Room ${i}`;
+    opt.textContent = `Room ${i}`;
+    select.appendChild(opt);
+  }
+}
+
+async function populateTeacherSelect() {
+  const select = document.getElementById('teacher-select-input');
+  const { data, error } = await supabaseClient.rpc('list_teacher_names');
+  if (error || !data) return;
+
+  data.forEach(t => {
+    const fullName = [t.first_name, t.last_name].filter(Boolean).join(' ') || t.email;
+    const opt = document.createElement('option');
+    opt.value = fullName;
+    opt.textContent = fullName;
+    select.appendChild(opt);
+  });
+}
+
 const els = {
   yearSelect: document.getElementById('year-select'),
   statusMsg: document.getElementById('status-msg'),
@@ -314,6 +338,9 @@ els.yearSelect.addEventListener('change', () => {
   if (!canManage) {
     document.querySelectorAll('.btn-add-budget').forEach(b => b.style.display = 'none');
   }
+
+  populateRoomSelect();
+  await populateTeacherSelect();
 
   await loadData();
 })();
