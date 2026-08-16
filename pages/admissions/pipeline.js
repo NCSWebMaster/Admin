@@ -240,16 +240,6 @@ function cardActionsHtml(r) {
   return btns.join('');
 }
 
-// Formats a sibling/previous-school object into one clean readable line,
-// e.g. "Name: Jane Doe · Grade: 3" instead of raw JSON.
-function formatArrayItem(obj) {
-  if (typeof obj !== 'object' || obj === null) return escapeHtml(String(obj));
-  const parts = Object.entries(obj)
-    .filter(([, v]) => v !== null && v !== undefined && v !== '')
-    .map(([k, v]) => `${humanizeKey(k)}: ${escapeHtml(String(v))}`);
-  return parts.length ? parts.join(' · ') : 'No details';
-}
-
 // Combines a Yes/No field with its free-text explanation into one line,
 // e.g. "Yes — has an IEP" instead of two separate label rows.
 function formatYesNoExplain(value, explain) {
@@ -300,15 +290,24 @@ function renderDetail(r) {
     cardsHtml += `<div class="o2-card"><div class="sec-title">${card.title}</div><dl>${rows.join('')}</dl></div>`;
   }
 
-  // --- Schools & Siblings (combined card) ---
-  const schoolChips = (r.previous_schools && Array.isArray(r.previous_schools))
-    ? r.previous_schools.map(s => `<div class="chip-item">${formatArrayItem(s)}</div>`).join('')
-    : '';
-  const siblingChips = (r.siblings && Array.isArray(r.siblings))
-    ? r.siblings.map(s => `<div class="chip-item">Sibling: ${formatArrayItem(s)}</div>`).join('')
-    : '';
-  if (schoolChips || siblingChips) {
-    cardsHtml += `<div class="o2-card"><div class="sec-title">🏫 Schools & Siblings</div>${schoolChips}${siblingChips}</div>`;
+  // --- Previous Schools (own card, same dt/dd format as everything else) ---
+  const schools = Array.isArray(r.previous_schools) ? r.previous_schools : [];
+  if (schools.length) {
+    const schoolRows = schools.map((s, i) => {
+      const parts = [s.name, [s.city, s.state].filter(Boolean).join(', ')].filter(Boolean);
+      return `<dt>School ${i + 1}</dt><dd>${escapeHtml(parts.join(' · ') || 'No details')}</dd>`;
+    }).join('');
+    cardsHtml += `<div class="o2-card"><div class="sec-title">🏫 Previous Schools</div><dl>${schoolRows}</dl></div>`;
+  }
+
+  // --- Siblings (own card, same dt/dd format as everything else) ---
+  const siblings = Array.isArray(r.siblings) ? r.siblings : [];
+  if (siblings.length) {
+    const siblingRows = siblings.map((s, i) => {
+      const parts = [s.name, s.age ? `Age ${s.age}` : ''].filter(Boolean);
+      return `<dt>Sibling ${i + 1}</dt><dd>${escapeHtml(parts.join(' · ') || 'No details')}</dd>`;
+    }).join('');
+    cardsHtml += `<div class="o2-card"><div class="sec-title">👨‍👩‍👧 Siblings</div><dl>${siblingRows}</dl></div>`;
   }
 
   if (cardsHtml === '') {

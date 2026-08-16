@@ -74,7 +74,11 @@
 
 .trash-link-row button.active { color: var(--red); font-weight: 600; }
 
+/* container-type here (not on detail-panel/o2-grid) so the grid below
+   responds to this card's actual rendered width — accurate in narrower
+   layouts too, not just raw device width. */
 .family-card {
+  container-type: inline-size;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -206,10 +210,22 @@
 
 .detail-panel.show { display: block; }
 
+/* Was: repeat(auto-fit, minmax(180px, 1fr)) — produced an unpredictable
+   column count at iPad/desktop widths, causing ragged rows. Explicit
+   breakpoints via container query instead, keyed to the family-card's
+   own width (see .family-card { container-type } above). */
 .o2-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: 1fr;
   gap: 10px;
+}
+
+@container (min-width: 560px) {
+  .o2-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@container (min-width: 860px) {
+  .o2-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
 .o2-card {
@@ -233,15 +249,19 @@
   margin-bottom: 8px;
 }
 
+/* Was: minmax(0, 90px) label column — hard cap forced labels like
+   "Repeated Grade" to wrap mid-word. max-content + nowrap sizes the
+   label column to its content instead; only values wrap now. */
 .o2-card dl {
   display: grid;
-  grid-template-columns: minmax(0, 90px) minmax(0, 1fr);
-  row-gap: 5px;
+  grid-template-columns: max-content 1fr;
+  column-gap: 10px;
+  row-gap: 6px;
   margin: 0;
   font-size: 0.82rem;
 }
 
-.o2-card dt { color: var(--ink-soft); font-weight: 600; }
+.o2-card dt { color: var(--ink-soft); font-weight: 600; white-space: nowrap; }
 .o2-card dt::after { content: ":"; }
 .o2-card dd { margin: 0; }
 
@@ -268,16 +288,6 @@
 .flag-box .flag-row { margin-bottom: 3px; }
 .flag-box .flag-row:last-child { margin-bottom: 0; }
 .flag-box strong { color: var(--ink); }
-
-.chip-item {
-  background: var(--white);
-  border-radius: 6px;
-  padding: 6px 9px;
-  font-size: 0.8rem;
-  margin-bottom: 5px;
-}
-
-.chip-item:last-child { margin-bottom: 0; }
 
 .record-info {
   grid-column: 1 / -1;
