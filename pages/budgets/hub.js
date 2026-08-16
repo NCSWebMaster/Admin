@@ -7,6 +7,7 @@ let budgets = [];
 let expensesByBudget = {};
 let selectedYear = 'all';
 let canManage = false;
+let canDeleteExpense = false;
 let openExpenseFormId = null;
 
 const els = {
@@ -121,7 +122,10 @@ function renderBudgetCard(b) {
 
   const expenseListHtml = expenses.length
     ? `<div class="expense-list">${expenses.slice(0, 5).map(e => `
-        <div class="expense-row"><span>${formatDate(e.spent_at)} — ${escapeHtml(e.description || 'No description')}</span><span>${formatMoney(e.amount)}</span></div>
+        <div class="expense-row">
+          <span>${formatDate(e.spent_at)} — ${escapeHtml(e.description || 'No description')}</span>
+          <span>${formatMoney(e.amount)}${canDeleteExpense ? ` <button class="expense-delete" data-action="delete-expense" data-id="${e.id}" title="Delete expense">✕</button>` : ''}</span>
+        </div>
       `).join('')}</div>`
     : '';
 
@@ -139,6 +143,7 @@ function renderBudgetCard(b) {
       </div>
       ${canManage ? `<div class="card-actions">
         <button class="btn-mini" data-action="toggle-expense" data-id="${b.id}">${isFormOpen ? 'Cancel' : 'Log Expense'}</button>
+        <button class="btn-mini danger" data-action="delete-budget" data-id="${b.id}">Delete Room</button>
       </div>` : ''}
       <div class="expense-form ${isFormOpen ? 'show' : ''}" id="expense-form-${b.id}">
         <div class="form-row cols-3">
@@ -165,6 +170,50 @@ function attachHandlers() {
   document.querySelectorAll('[data-action="save-expense"]').forEach(btn => {
     btn.addEventListener('click', () => saveExpense(Number(btn.dataset.id)));
   });
+
+  document.querySelectorAll('[data-action="delete-budget"]').forEach(btn => {
+    btn.addEventListener('click', () => deleteBudget(Number(btn.dataset.id), btn));
+  });
+
+  document.querySelectorAll('[data-action="delete-expense"]').forEach(btn => {
+    btn.addEventListener('click', () => deleteExpense(Number(btn.dataset.id)));
+  });
+}
+
+async function deleteBudget(budgetId, btnEl) {
+  const card = btnEl.closest('.budget-card');
+  const name = card ? card.querySelector('.budget-name').textContent : 'this budget';
+  if (!confirm(`Delete "${name}"? This removes the whole budget, including its expense history from view. This cannot be undone from here.`)) return;
+
+  const { error } = await supabaseClient
+    .from('room_budgets')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', budgetId);
+
+  if (error) {
+    showStatus('Could not delete budget: ' + error.message, 'error');
+    return;
+  }
+
+  showStatus('Budget deleted.', 'success');
+  await loadData();
+}
+
+async function deleteExpense(expenseId) {
+  if (!confirm('Delete this expense entry? This cannot be undone.')) return;
+
+  const { error } = await supabaseClient
+    .from('room_budget_expenses')
+    .delete()
+    .eq('id', expenseId);
+
+  if (error) {
+    showStatus('Could not delete expense: ' + error.message, 'error');
+    return;
+  }
+
+  showStatus('Expense deleted.', 'success');
+  await loadData();
 }
 
 async function saveExpense(budgetId) {
@@ -260,6 +309,7 @@ els.yearSelect.addEventListener('change', () => {
     .maybeSingle();
   const roles = (staffRow && staffRow.roles) || [];
   canManage = roles.includes('staff') || roles.includes('leader') || roles.includes('super_admin');
+  canDeleteExpense = roles.includes('leader') || roles.includes('super_admin');
 
   if (!canManage) {
     document.querySelectorAll('.btn-add-budget').forEach(b => b.style.display = 'none');

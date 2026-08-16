@@ -140,6 +140,17 @@
 
 .expense-list .expense-row:last-child { border-bottom: none; }
 
+.expense-delete {
+  background: none;
+  border: none;
+  color: var(--ink-soft);
+  font-size: 0.7rem;
+  padding: 0 0 0 6px;
+  cursor: pointer;
+}
+
+.expense-delete:hover { color: var(--error); }
+
 .empty-state {
   text-align: center;
   padding: 24px;
