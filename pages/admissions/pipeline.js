@@ -301,7 +301,7 @@ function renderDetail(r) {
     if (s.state) rows.push(`<dt>State</dt><dd>${escapeHtml(s.state)}</dd>`);
     if (!rows.length) return;
     const title = schools.length > 1 ? `Previous School ${i + 1}` : 'Previous School';
-    cardsHtml += `<div class="o2-card"><div class="sec-title">🏫 ${title}</div><dl>${rows.join('')}</dl></div>`;
+    cardsHtml += `<div class="o2-card wide"><div class="sec-title">🏫 ${title}</div><dl>${rows.join('')}</dl></div>`;
   });
 
   // --- Siblings: one card per sibling, same pattern as above ---
@@ -312,7 +312,7 @@ function renderDetail(r) {
     if (s.age) rows.push(`<dt>Age</dt><dd>${escapeHtml(String(s.age))}</dd>`);
     if (!rows.length) return;
     const title = siblings.length > 1 ? `Sibling ${i + 1}` : 'Sibling';
-    cardsHtml += `<div class="o2-card"><div class="sec-title">👨‍👩‍👧 ${title}</div><dl>${rows.join('')}</dl></div>`;
+    cardsHtml += `<div class="o2-card wide"><div class="sec-title">👨‍👩‍👧 ${title}</div><dl>${rows.join('')}</dl></div>`;
   });
 
   if (cardsHtml === '') {
