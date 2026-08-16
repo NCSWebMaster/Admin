@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roles &amp; Users — NCS OnePlace</title>
+<link rel="stylesheet" href="/assets/css/base.css?v=9">
+<link rel="stylesheet" href="/pages/admin/roles-users.css?v=1">
+</head>
+<body>
+
+<nav class="top-nav">
+  <a class="brand" href="/pages/dashboard/index.html">
+    <img src="/assets/img/logo.png" alt="">
+    NCS OnePlace
+  </a>
+  <div class="nav-right">
+    <a class="nav-link" href="/pages/admin/hub.html">← Admin Management</a>
+  </div>
+</nav>
+
+<div class="page-wrap">
+  <div class="page-header">
+    <h1>Roles &amp; Users</h1>
+    <p>View staff accounts and manage role assignments.</p>
+  </div>
+
+  <div id="statusMsg" class="status-msg"></div>
+
+  <div id="mainContent" style="display:none;">
+    <div class="search-row">
+      <input type="text" id="searchInput" class="search-input" placeholder="Search by name or email...">
+      <select id="roleFilterSelect" class="form-select role-filter-select">
+        <option value="">All Roles</option>
+        <option value="super_admin">Super Admin</option>
+        <option value="leader">Leader</option>
+        <option value="staff">Staff</option>
+        <option value="teacher">Teacher</option>
+        <option value="admissions_committee">Admissions Committee</option>
+        <option value="pureAdmissions">Pure Admissions</option>
+        <option value="board_member">Board Member</option>
+      </select>
+    </div>
+
+    <div class="section-label" id="countLabel">Staff Accounts</div>
+
+    <div id="usersList"></div>
+
+    <div class="empty-state" id="emptyState" style="display:none;">
+      No staff accounts match your search.
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/assets/js/supabase-client.js?v=1"></script>
+<script>
+(async () => {
+  const statusMsg = document.getElementById('statusMsg');
+  const mainContent = document.getElementById('mainContent');
+  const usersList = document.getElementById('usersList');
+  const emptyState = document.getElementById('emptyState');
+  const countLabel = document.getElementById('countLabel');
+  const searchInput = document.getElementById('searchInput');
+  const roleFilterSelect = document.getElementById('roleFilterSelect');
+
+  const ROLE_LABELS = {
+    super_admin: 'Super Admin',
+    leader: 'Leader',
+    staff: 'Staff',
+    teacher: 'Teacher',
+    admissions_committee: 'Admissions Committee',
+    pureAdmissions: 'Pure Admissions',
+    board_member: 'Board Member'
+  };
+  const ROLE_ORDER = Object.keys(ROLE_LABELS);
+
+  function showError(msg) {
+    statusMsg.textContent = msg;
+    statusMsg.className = 'status-msg error show';
+  }
+
+  const { data: { session } } = await supabaseClient.auth.getSession();
+
+  if (!session || sessionStorage.getItem('ncs_mfa_verified') !== session.user.id) {
+    window.location.href = '/index.html';
+    return;
+  }
+
+  const currentEmail = session.user.email;
+
+  const { data: staffRow } = await supabaseClient
+    .from('staff_roles')
+    .select('roles')
+    .eq('email', currentEmail)
+    .maybeSingle();
+
+  const myRoles = (staffRow && staffRow.roles) || [];
+
+  if (!myRoles.includes('super_admin')) {
+    showError('Roles & Users is restricted to Super Admins.');
+    return;
+  }
+
+  mainContent.style.display = 'block';
+
+  let allUsers = [];
+
+  async function loadUsers() {
+    const { data, error } = await supabaseClient
+      .from('staff_roles')
+      .select('id, email, first_name, last_name, roles')
+      .order('last_name', { ascending: true });
+
+    if (error) {
+      showError('Could not load staff accounts.');
+      return;
+    }
+
+    allUsers = data || [];
+    renderList();
+  }
+
+  function displayName(user) {
+    if (user.first_name || user.last_name) {
+      return `${user.first_name || ''} ${user.last_name || ''}`.trim();
+    }
+    return user.email;
+  }
+
+  function renderList() {
+    const searchTerm = searchInput.value.trim().toLowerCase();
+    const roleFilter = roleFilterSelect.value;
+
+    const filtered = allUsers.filter(u => {
+      const name = displayName(u).toLowerCase();
+      const matchesSearch = !searchTerm || name.includes(searchTerm) || u.email.toLowerCase().includes(searchTerm);
+      const matchesRole = !roleFilter || (u.roles || []).includes(roleFilter);
+      return matchesSearch && matchesRole;
+    });
+
+    countLabel.textContent = `Staff Accounts (${filtered.length})`;
+    usersList.innerHTML = '';
+
+    if (filtered.length === 0) {
+      emptyState.style.display = 'block';
+      return;
+    }
+    emptyState.style.display = 'none';
+
+    filtered.forEach(user => {
+      const isSelf = user.email.toLowerCase() === currentEmail.toLowerCase();
+      const roles = user.roles || [];
+
+      const card = document.createElement('div');
+      card.className = 'user-card';
+
+      const pillsHtml = roles.length
+        ? roles.map(r => `<span class="role-pill ${r}">${ROLE_LABELS[r] || r}</span>`).join('')
+        : `<span class="role-pill none">No Roles (Deactivated)</span>`;
+
+      const checksHtml = ROLE_ORDER.map(r => {
+        const checked = roles.includes(r) ? 'checked' : '';
+        const lockSelf = (isSelf && r === 'super_admin') ? 'disabled' : '';
+        return `
+          <label class="role-check-item">
+            <input type="checkbox" value="${r}" ${checked} ${lockSelf}>
+            <span>${ROLE_LABELS[r]}${lockSelf ? ' (you)' : ''}</span>
+          </label>
+        `;
+      }).join('');
+
+      card.innerHTML = `
+        <div class="row-top">
+          <div>
+            <div class="u-name">${displayName(user)} ${isSelf ? '<span class="you-tag">You</span>' : ''}</div>
+            <div class="u-email">${user.email}</div>
+          </div>
+        </div>
+        <div class="role-pills">${pillsHtml}</div>
+        <div class="card-actions">
+          <button type="button" class="btn-mini toggle-edit">Edit Roles</button>
+          ${isSelf ? '' : `<button type="button" class="btn-mini danger deactivate-btn">Deactivate</button>`}
+        </div>
+        <div class="edit-panel">
+          <div class="role-checks">${checksHtml}</div>
+          <div class="edit-actions">
+            <button type="button" class="btn-primary-sm save-roles">Save Roles</button>
+            <button type="button" class="btn-mini cancel-edit">Cancel</button>
+          </div>
+        </div>
+      `;
+
+      const editPanel = card.querySelector('.edit-panel');
+
+      card.querySelector('.toggle-edit').addEventListener('click', () => {
+        editPanel.classList.toggle('show');
+      });
+
+      card.querySelector('.cancel-edit').addEventListener('click', () => {
+        editPanel.classList.remove('show');
+        renderList();
+      });
+
+      card.querySelector('.save-roles').addEventListener('click', async (e) => {
+        const btn = e.target;
+        const checkedRoles = Array.from(card.querySelectorAll('.role-check-item input[type="checkbox"]'))
+          .filter(cb => cb.checked)
+          .map(cb => cb.value);
+
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+
+        const { error } = await supabaseClient
+          .from('staff_roles')
+          .update({ roles: checkedRoles })
+          .eq('id', user.id);
+
+        if (error) {
+          showError('Could not save role changes. Please try again.');
+          btn.disabled = false;
+          btn.textContent = 'Save Roles';
+          return;
+        }
+
+        user.roles = checkedRoles;
+        renderList();
+      });
+
+      if (!isSelf) {
+        card.querySelector('.deactivate-btn').addEventListener('click', async (e) => {
+          const confirmed = window.confirm(
+            `Deactivate ${displayName(user)}? This immediately revokes all access. You can restore access later via Edit Roles.`
+          );
+          if (!confirmed) return;
+
+          const btn = e.target;
+          btn.disabled = true;
+          btn.textContent = 'Deactivating...';
+
+          const { error } = await supabaseClient
+            .from('staff_roles')
+            .update({ roles: [] })
+            .eq('id', user.id);
+
+          if (error) {
+            showError('Could not deactivate this account. Please try again.');
+            btn.disabled = false;
+            btn.textContent = 'Deactivate';
+            return;
+          }
+
+          user.roles = [];
+          renderList();
+        });
+      }
+
+      usersList.appendChild(card);
+    });
+  }
+
+  searchInput.addEventListener('input', renderList);
+  roleFilterSelect.addEventListener('change', renderList);
+
+  await loadUsers();
+})();
+</script>
+</body>
+</html>
