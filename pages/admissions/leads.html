@@ -99,7 +99,27 @@
   }
 
   let allLeads = [];
+  let allApplications = [];
   let activeFilter = 'all';
+
+  const appStatusLabels = {
+    code_sent: 'Code Sent',
+    in_progress: 'In Progress',
+    submitted: 'Submitted',
+    accepted: 'Accepted',
+    waitlisted: 'Waitlisted',
+    declined: 'Declined'
+  };
+
+  function findMatchingApplication(leadEmail) {
+    if (!leadEmail) return null;
+    const target = leadEmail.trim().toLowerCase();
+    return allApplications.find(app => {
+      const e1 = (app.parent1_email || '').trim().toLowerCase();
+      const e2 = (app.parent2_email || '').trim().toLowerCase();
+      return e1 === target || e2 === target;
+    }) || null;
+  }
 
   function statusClass(status) {
     return 'lead-' + status.toLowerCase();
@@ -142,6 +162,7 @@
       card.className = 'family-card';
 
       const gradeText = lead.grade_applying_for || 'Not specified';
+      const matchedApp = findMatchingApplication(lead.email);
 
       card.innerHTML = `
         <div class="row-top">
@@ -153,6 +174,12 @@
           </div>
           <span class="status-pill ${statusClass(lead.status)}">${lead.status}</span>
         </div>
+        ${matchedApp ? `
+        <div class="meta-line" style="margin-top:10px;">
+          <a href="/pages/admissions/pipeline.html" class="btn-mini">
+            🔗 Application Found — <span class="status-pill ${matchedApp.status}" style="margin-left:4px;">${appStatusLabels[matchedApp.status] || matchedApp.status}</span>
+          </a>
+        </div>` : ''}
         <div class="card-actions">
           <button type="button" class="btn-mini toggle-detail">View Details</button>
         </div>
@@ -226,6 +253,16 @@
     }
 
     allLeads = data || [];
+
+    const { data: appData, error: appError } = await supabaseClient
+      .from('admissions_applications')
+      .select('id, status, student_full_name, parent1_email, parent2_email')
+      .is('deleted_at', null);
+
+    if (!appError) {
+      allApplications = appData || [];
+    }
+
     renderCounts();
     renderList();
   }
