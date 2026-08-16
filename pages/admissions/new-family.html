@@ -24,7 +24,7 @@
 <div class="page-wrap">
   <div class="page-header">
     <h1>New Interested Family</h1>
-    <p>Enter the family &amp; student's basic info to generate an application access code. It's emailed automatically once you submit.</p>
+    <p>Enter the family &amp; each applying child's basic info to generate one application access code covering the whole family. It's emailed automatically once you submit.</p>
   </div>
 
   <div id="status-msg" class="status-msg"></div>
@@ -33,37 +33,16 @@
     <form id="family-form" novalidate>
 
       <div class="form-section">
-        <h2 class="form-section-title">Student</h2>
-        <div class="form-row">
-          <div class="form-field">
-            <label for="student-name">Student Name</label>
-            <input type="text" id="student-name" class="form-input" required>
-          </div>
-          <div class="form-field">
-            <label for="student-dob">DOB</label>
-            <input type="date" id="student-dob" class="form-input" required>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-field">
-            <label for="current-grade">Current Grade</label>
-            <select id="current-grade" class="form-select" required>
-              <option value="" disabled selected>Select grade</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label for="anticipated-grade">Anticipated Grade</label>
-            <select id="anticipated-grade" class="form-select" required>
-              <option value="" disabled selected>Select grade</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-field">
-          <label for="school-year">School Year</label>
-          <select id="school-year" class="form-select" required>
-            <option value="" disabled selected>Select school year</option>
-          </select>
-        </div>
+        <h2 class="form-section-title">Children</h2>
+        <div id="children-container"></div>
+        <button type="button" id="btn-add-child" class="btn-text-add">+ Add Another Child</button>
+      </div>
+
+      <div class="form-field">
+        <label for="school-year">School Year</label>
+        <select id="school-year" class="form-select" required>
+          <option value="" disabled selected>Select school year</option>
+        </select>
       </div>
 
       <div class="form-section">
@@ -144,6 +123,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/assets/js/supabase-client.js?v=1"></script>
-<script src="/pages/admissions/new-family.js?v=2"></script>
+<script src="/pages/admissions/new-family.js?v=3"></script>
 </body>
 </html>

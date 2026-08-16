@@ -1,5 +1,6 @@
 // NCS OnePlace — pages/admissions/new-family.js
-// New Interested Family intake: generates + emails an admissions access code.
+// New Interested Family intake: generates + emails ONE admissions access code
+// covering the whole family, with N children entered up front.
 // Requires supabase-client.js loaded first.
 
 const GRADE_OPTIONS = [
@@ -18,6 +19,7 @@ const GRADE_OPTIONS = [
 const US_STATES = ['CA','AL','AK','AZ','AR','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
 
 function populateGradeSelect(select) {
+  select.innerHTML = '<option value="" disabled selected>Select grade</option>';
   GRADE_OPTIONS.forEach(([value, label]) => {
     const opt = document.createElement('option');
     opt.value = value;
@@ -38,7 +40,6 @@ function populateStateSelect(select) {
 
 function populateSchoolYearSelect(select) {
   const now = new Date();
-  // Academic year runs roughly Aug-Jun; offer a window spanning last year through 3 years out
   const startYear = now.getMonth() >= 6 ? now.getFullYear() - 1 : now.getFullYear() - 2;
   for (let i = 0; i < 5; i++) {
     const y = startYear + i;
@@ -69,10 +70,9 @@ const els = {
   statusMsg: document.getElementById('status-msg'),
   submitBtn: document.getElementById('btn-submit'),
 
-  studentName: document.getElementById('student-name'),
-  studentDob: document.getElementById('student-dob'),
-  currentGrade: document.getElementById('current-grade'),
-  anticipatedGrade: document.getElementById('anticipated-grade'),
+  childrenContainer: document.getElementById('children-container'),
+  btnAddChild: document.getElementById('btn-add-child'),
+
   schoolYear: document.getElementById('school-year'),
 
   parent1Name: document.getElementById('parent1-name'),
@@ -114,17 +114,85 @@ async function requireStaffSession() {
   return session;
 }
 
+// ── REPEATABLE CHILD ROWS ────────────────────────────────────
+let childRowCount = 0;
+
+function addChildRow() {
+  childRowCount++;
+  const row = document.createElement('div');
+  row.className = 'child-row';
+  row.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
+      <h3 style="margin:0;font-size:0.95rem;">Child</h3>
+      <button type="button" class="btn-text-remove child-remove-btn" style="display:none;">Remove</button>
+    </div>
+    <div class="form-row">
+      <div class="form-field"><label>Student Name</label><input type="text" class="form-input child-name" required></div>
+      <div class="form-field"><label>DOB</label><input type="date" class="form-input child-dob" required></div>
+    </div>
+    <div class="form-row">
+      <div class="form-field"><label>Current Grade</label><select class="form-select child-current-grade" required></select></div>
+      <div class="form-field"><label>Anticipated Grade</label><select class="form-select child-anticipated-grade" required></select></div>
+    </div>
+  `;
+  els.childrenContainer.appendChild(row);
+  populateGradeSelect(row.querySelector('.child-current-grade'));
+  populateGradeSelect(row.querySelector('.child-anticipated-grade'));
+  row.querySelector('.child-remove-btn').addEventListener('click', () => {
+    row.remove();
+    updateChildLabelsAndRemoveButtons();
+  });
+  updateChildLabelsAndRemoveButtons();
+}
+
+// Numbers each child ("Child 1", "Child 2"...) and only shows Remove once
+// there's more than one — mirrors the same rule used on the apply site.
+function updateChildLabelsAndRemoveButtons() {
+  const rows = els.childrenContainer.querySelectorAll('.child-row');
+  rows.forEach((row, i) => {
+    row.querySelector('h3').textContent = rows.length > 1 ? `Child ${i + 1}` : 'Child';
+    row.querySelector('.child-remove-btn').style.display = rows.length > 1 ? 'inline-block' : 'none';
+  });
+}
+
+function collectChildren() {
+  return Array.from(els.childrenContainer.querySelectorAll('.child-row')).map(row => ({
+    student_full_name: row.querySelector('.child-name').value.trim(),
+    dob: row.querySelector('.child-dob').value || null,
+    current_grade: row.querySelector('.child-current-grade').value || null,
+    anticipated_grade: row.querySelector('.child-anticipated-grade').value || null,
+  }));
+}
+
+function validateChildren(children) {
+  if (children.length === 0) return 'Please add at least one child.';
+  for (let i = 0; i < children.length; i++) {
+    const c = children[i];
+    const label = children.length > 1 ? `Child ${i + 1}` : 'the child';
+    if (!c.student_full_name) return `Please enter a name for ${label}.`;
+    if (!c.dob) return `Please enter a date of birth for ${label}.`;
+    if (!c.current_grade) return `Please select a current grade for ${label}.`;
+    if (!c.anticipated_grade) return `Please select an anticipated grade for ${label}.`;
+  }
+  return null;
+}
+
+// ── FORM RESET ───────────────────────────────────────────────
 function resetForm() {
   els.form.reset();
   els.state.value = 'CA';
   els.parent2Block.style.display = 'none';
   els.btnAddParent2.style.display = 'inline-block';
+  els.childrenContainer.innerHTML = '';
+  childRowCount = 0;
+  addChildRow();
   els.successCard.style.display = 'none';
   els.formCard.style.display = 'block';
   clearStatus();
-  els.studentName.focus();
+  els.childrenContainer.querySelector('.child-name').focus();
 }
 
+// ── SUBMIT ───────────────────────────────────────────────────
 async function handleSubmit(e) {
   e.preventDefault();
   clearStatus();
@@ -133,10 +201,14 @@ async function handleSubmit(e) {
     showStatus('Parent/Guardian name, phone, and email are required.', 'error');
     return;
   }
-  if (!els.studentName.value.trim() || !els.studentDob.value || !els.currentGrade.value || !els.anticipatedGrade.value) {
-    showStatus('Student name, date of birth, current grade, and anticipated grade are required.', 'error');
+
+  const children = collectChildren();
+  const childrenError = validateChildren(children);
+  if (childrenError) {
+    showStatus(childrenError, 'error');
     return;
   }
+
   if (!els.schoolYear.value) {
     showStatus('Select a school year.', 'error');
     return;
@@ -147,11 +219,8 @@ async function handleSubmit(e) {
   els.submitBtn.disabled = true;
   els.submitBtn.innerHTML = '<span class="spinner"></span>Generating code…';
 
-  const { data, error } = await supabaseClient.rpc('generate_admission_code', {
-    p_student_full_name: els.studentName.value.trim(),
-    p_dob: els.studentDob.value,
-    p_current_grade: els.currentGrade.value,
-    p_anticipated_grade: els.anticipatedGrade.value,
+  const { data, error } = await supabaseClient.rpc('generate_admission_family', {
+    p_children: children,
     p_school_year: els.schoolYear.value,
     p_parent1_name: els.parent1Name.value.trim(),
     p_parent1_email: els.parent1Email.value.trim(),
@@ -184,6 +253,8 @@ async function handleSubmit(e) {
   els.successCard.style.display = 'block';
 }
 
+els.btnAddChild.addEventListener('click', addChildRow);
+
 els.btnAddParent2.addEventListener('click', () => {
   els.parent2Block.style.display = 'block';
   els.btnAddParent2.style.display = 'none';
@@ -207,8 +278,7 @@ els.btnAnother.addEventListener('click', resetForm);
   const session = await requireStaffSession();
   if (!session) return;
 
-  populateGradeSelect(els.currentGrade);
-  populateGradeSelect(els.anticipatedGrade);
   populateStateSelect(els.state);
   populateSchoolYearSelect(els.schoolYear);
+  addChildRow();
 })();
