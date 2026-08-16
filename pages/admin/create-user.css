@@ -1,0 +1,29 @@
+/* NCS OnePlace — pages/admin/create-user.css */
+
+.role-checks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.role-check-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.role-check-item:has(input:checked) {
+  border-color: var(--red);
+  background: var(--cream);
+}
+
+.role-check-item input { accent-color: var(--red); }
+
+.success-view { text-align: center; }
+.success-view h2 { color: var(--red); font-size: 1.3rem; margin-bottom: 6px; }
+.success-view p { color: var(--ink-soft); }

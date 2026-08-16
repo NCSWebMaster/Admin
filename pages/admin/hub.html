@@ -1,1 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Management — NCS OnePlace</title>
+<link rel="stylesheet" href="/assets/css/base.css?v=8">
+</head>
+<body>
 
+<nav class="top-nav">
+  <a class="brand" href="/pages/dashboard/index.html">
+    <img src="/assets/img/logo.png" alt="">
+    NCS OnePlace
+  </a>
+  <div class="nav-right">
+    <a class="nav-link" href="/pages/dashboard/index.html">← Dashboard</a>
+  </div>
+</nav>
+
+<div class="page-wrap">
+  <div class="page-header">
+    <h1>Admin Management</h1>
+    <p>Manage staff accounts and system-level settings.</p>
+  </div>
+
+  <div id="status-msg" class="status-msg"></div>
+
+  <div class="list-container">
+    <a class="list-row" href="/pages/admin/create-user.html">
+      <span class="icon-box">👤</span>
+      <div class="row-text">
+        <div class="row-title">Create User</div>
+        <div class="row-desc">Add a new staff account and assign roles</div>
+      </div>
+      <span class="chevron">›</span>
+    </a>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/assets/js/supabase-client.js?v=1"></script>
+<script>
+(async () => {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session || sessionStorage.getItem('ncs_mfa_verified') !== session.user.id) {
+    window.location.href = '/index.html';
+    return;
+  }
+
+  const { data: staffRow } = await supabaseClient
+    .from('staff_roles')
+    .select('roles')
+    .eq('email', session.user.email)
+    .maybeSingle();
+  const roles = (staffRow && staffRow.roles) || [];
+
+  if (!roles.includes('super_admin')) {
+    document.getElementById('status-msg').textContent = 'Admin Management is restricted to Super Admins.';
+    document.getElementById('status-msg').className = 'status-msg show error';
+    document.querySelector('.list-container').style.display = 'none';
+  }
+})();
+</script>
+</body>
+</html>
