@@ -1,6 +1,14 @@
 // NCS OnePlace — auth.js
 // Login flow: Google OAuth (Supabase Auth) -> staff_roles check -> email MFA code.
 // Requires supabase-client.js loaded first.
+//
+// IMPORTANT: the page must never silently skip past the "Sign in with
+// Google" button just because a Supabase session is still cached in this
+// browser. init() always shows the button first. Progressing past it only
+// happens via an explicit click (see btnGoogle listener), or when the page
+// reloads immediately after that click due to the OAuth redirect — tracked
+// via the ncs_oauth_pending sessionStorage flag set right before we hand
+// off to Google.
 
 const els = {
   stepGoogle: document.getElementById('step-google'),
@@ -37,8 +45,28 @@ function setLoading(btn, loading, label) {
   btn.innerHTML = loading ? '<span class="spinner"></span>' + label : label;
 }
 
+async function proceedWithSession(session) {
+  // Already fully verified this browser session? Skip straight through.
+  if (sessionStorage.getItem('ncs_mfa_verified') === session.user.id) {
+    window.location.href = '/pages/dashboard/index.html';
+    return;
+  }
+  // We have a Supabase session (post Google OAuth) but MFA not yet verified this session.
+  await checkStaffAndSendCode(session);
+}
+
 // Entry point — runs on every load of index.html
 async function init() {
+  const returningFromOAuth = sessionStorage.getItem('ncs_oauth_pending') === '1';
+  sessionStorage.removeItem('ncs_oauth_pending');
+
+  if (!returningFromOAuth) {
+    // Fresh visit or reload — always require the explicit button click,
+    // even if a Supabase session is still cached in this browser.
+    showStep(els.stepGoogle);
+    return;
+  }
+
   const { data: { session } } = await supabaseClient.auth.getSession();
 
   if (!session) {
@@ -46,14 +74,7 @@ async function init() {
     return;
   }
 
-  // Already fully verified this browser session? Skip straight through.
-  if (sessionStorage.getItem('ncs_mfa_verified') === session.user.id) {
-    window.location.href = '/pages/dashboard/index.html';
-    return;
-  }
-
-  // We have a Supabase session (post Google OAuth) but MFA not yet verified this session.
-  await checkStaffAndSendCode(session);
+  await proceedWithSession(session);
 }
 
 async function checkStaffAndSendCode(session) {
@@ -134,11 +155,17 @@ async function verifyMfaCode() {
 els.btnGoogle.addEventListener('click', async () => {
   clearStatus(els.statusGoogle);
   setLoading(els.btnGoogle, true, 'Redirecting…');
+
+  // Mark that the next page load is a deliberate continuation of this
+  // click, not a silent auto-resume — see init() above.
+  sessionStorage.setItem('ncs_oauth_pending', '1');
+
   const { error } = await supabaseClient.auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo: window.location.origin + '/index.html' },
   });
   if (error) {
+    sessionStorage.removeItem('ncs_oauth_pending');
     setLoading(els.btnGoogle, false, 'Sign in with Google');
     showStatus(els.statusGoogle, 'Could not start sign-in. Please try again.', 'error');
   }
