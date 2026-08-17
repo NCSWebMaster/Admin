@@ -87,7 +87,7 @@ async function loadData() {
 
 function render() {
   if (allNights.length === 0) {
-    els.list.innerHTML = '<div class="empty-state">No information nights scheduled yet. Click "+ Add Information Night" to add one — it will appear on the homepage right away.</div>';
+    els.list.innerHTML = '<div class="empty-state">No information nights scheduled yet.</div>';
     return;
   }
 

@@ -147,12 +147,21 @@
 
 .in-field input {
   width: 100%;
+  box-sizing: border-box;
   padding: 11px 12px;
   border: 2px solid var(--border);
   border-radius: 8px;
   font-size: 0.95rem;
   color: var(--ink);
+  background: var(--white);
   outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  line-height: normal;
+}
+
+.in-field input[type="date"] {
+  min-height: 44px;
 }
 
 .in-field input:focus { border-color: var(--bronze); }
