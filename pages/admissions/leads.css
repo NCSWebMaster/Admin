@@ -1,5 +1,5 @@
 /* NCS OnePlace — pages/admissions/leads.css
-   Admission Leads: public-site "Interested?" inquiries.
+   Admission Leads: public-site "Interested?" inquiries + Info Night RSVPs.
    Loaded alongside base.css and hub.css — reuses stage-grid/family-card/
    status-pill/detail-panel patterns from hub.css and only adds what's new. */
 
@@ -39,4 +39,22 @@
 .stage-card.filterable:focus-visible {
   outline: 2px solid var(--red);
   outline-offset: 2px;
+}
+
+.lead-source-badge {
+  display: inline-block;
+  background: #FDF3E7;
+  color: #A66A1E;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 20px;
+  margin-left: 8px;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.lead-source-note {
+  color: var(--bronze);
+  font-weight: 600;
 }

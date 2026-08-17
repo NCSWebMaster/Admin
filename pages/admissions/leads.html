@@ -6,7 +6,7 @@
 <title>Admission Leads — NCS OnePlace</title>
 <link rel="stylesheet" href="/assets/css/base.css?v=9">
 <link rel="stylesheet" href="/pages/admissions/hub.css">
-<link rel="stylesheet" href="/pages/admissions/leads.css?v=1">
+<link rel="stylesheet" href="/pages/admissions/leads.css?v=2">
 </head>
 <body>
 
@@ -23,7 +23,7 @@
 <div class="page-wrap">
   <div class="page-header">
     <h1>Admission Leads</h1>
-    <p>Prospective family inquiries submitted from the "Interested? Get More Info Now!" form on the public website.</p>
+    <p>Prospective family inquiries submitted from the "Interested? Get More Info Now!" form and Information Night RSVPs on the public website.</p>
   </div>
 
   <div class="status-msg" id="statusMsg"></div>
@@ -163,13 +163,18 @@
 
       const gradeText = lead.grade_applying_for || 'Not specified';
       const matchedApp = findMatchingApplication(lead.email);
+      const isInfoNightRsvp = !!lead.info_night_id || (lead.source_note || '').startsWith('Info Night RSVP');
 
       card.innerHTML = `
         <div class="row-top">
           <div>
-            <div class="student-name">${lead.student_name}</div>
+            <div class="student-name">
+              ${lead.student_name}
+              ${isInfoNightRsvp ? '<span class="lead-source-badge">🗓️ Info Night RSVP</span>' : ''}
+            </div>
             <div class="meta-line">Parent/Guardian: ${lead.parent_name}</div>
             <div class="meta-line">Grade Applying For: ${gradeText}</div>
+            ${isInfoNightRsvp ? `<div class="meta-line lead-source-note">${(lead.source_note || '').replace('Info Night RSVP — ', '')}</div>` : ''}
             <div class="meta-line">Submitted: ${formatDate(lead.created_at)}</div>
           </div>
           <span class="status-pill ${statusClass(lead.status)}">${lead.status}</span>
@@ -187,6 +192,7 @@
           <dl>
             <dt>Email</dt><dd>${lead.email}</dd>
             <dt>Phone</dt><dd>${lead.phone}</dd>
+            ${isInfoNightRsvp ? `<dt>Source</dt><dd>${lead.source_note}</dd>` : ''}
           </dl>
           <div class="lead-status-row" style="margin-top:14px;">
             <label for="status-${lead.id}" class="sr-only">Update status</label>

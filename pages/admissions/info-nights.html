@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Information Nights — NCS OnePlace</title>
+<link rel="stylesheet" href="/assets/css/base.css?v=9">
+<link rel="stylesheet" href="/pages/admissions/hub.css?v=1">
+<link rel="stylesheet" href="/pages/admissions/info-nights.css?v=1">
+</head>
+<body>
+
+<nav class="top-nav">
+  <a class="brand" href="/pages/dashboard/index.html">
+    <img src="/assets/img/logo.png" alt="">
+    NCS OnePlace
+  </a>
+  <div class="nav-right">
+    <a class="nav-link" href="/pages/admissions/index.html">← Admissions Hub</a>
+  </div>
+</nav>
+
+<div class="page-wrap">
+  <div class="page-header hub-header-row">
+    <div>
+      <h1>Information Nights</h1>
+      <p>Add upcoming nights so they show on the homepage, and see who RSVPed.</p>
+    </div>
+    <button class="btn-cta" id="addNightBtn" type="button">+ Add Information Night</button>
+  </div>
+
+  <div id="status-msg" class="status-msg"></div>
+
+  <div id="nightsList"></div>
+</div>
+
+<!-- ADD / EDIT MODAL -->
+<div class="in-modal-overlay" id="nightModalOverlay">
+  <div class="in-modal">
+    <button type="button" class="in-modal-close" id="nightModalCloseBtn" aria-label="Close">&times;</button>
+    <h3 id="nightModalTitle">Add Information Night</h3>
+
+    <form id="nightForm">
+      <input type="hidden" id="nightId">
+      <div class="in-field">
+        <label for="nightDate">Date</label>
+        <input type="date" id="nightDate" required>
+      </div>
+      <div class="in-field">
+        <label for="nightTime">Time</label>
+        <input type="text" id="nightTime" placeholder="e.g. 6:30 PM" required>
+      </div>
+      <div class="in-field">
+        <label for="nightLocation">Location</label>
+        <input type="text" id="nightLocation" value="NCS Main Campus" required>
+      </div>
+      <div class="in-field">
+        <label for="nightNotes">Notes <span class="in-optional">(optional)</span></label>
+        <input type="text" id="nightNotes" placeholder="e.g. Best for new TK–2nd families">
+      </div>
+      <p class="in-error" id="nightFormError"></p>
+      <button type="submit" class="in-submit-btn" id="nightSubmitBtn">Save</button>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/assets/js/supabase-client.js?v=1"></script>
+<script src="/pages/admissions/info-nights.js?v=1"></script>
+</body>
+</html>

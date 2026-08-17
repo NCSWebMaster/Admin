@@ -1,0 +1,184 @@
+/* NCS OnePlace — pages/admissions/info-nights.css
+   Information Nights admin: night cards + RSVP list + add/edit modal. */
+
+.night-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow);
+}
+
+.night-card.past { opacity: 0.6; }
+
+.night-card .row-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.night-card .night-date {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--red);
+}
+
+.night-card .night-meta {
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+  margin-top: 4px;
+}
+
+.night-card .night-notes {
+  color: var(--ink);
+  font-size: 0.88rem;
+  margin-top: 6px;
+  font-style: italic;
+}
+
+.rsvp-count-pill {
+  background: var(--success-bg);
+  color: var(--success);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.rsvp-count-pill.zero { background: var(--cream); color: var(--ink-soft); }
+
+.night-card .card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+.rsvp-panel {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border);
+  display: none;
+}
+
+.rsvp-panel.show { display: block; }
+
+.rsvp-row {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.88rem;
+}
+
+.rsvp-row:last-child { border-bottom: none; }
+
+.rsvp-row .rsvp-name { font-weight: 600; color: var(--ink); }
+.rsvp-row .rsvp-meta { color: var(--ink-soft); margin-top: 2px; }
+
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--ink-soft);
+}
+
+/* Add / Edit modal */
+.in-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(58, 46, 42, 0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.in-modal-overlay.open { display: flex; }
+
+.in-modal {
+  background: var(--white);
+  width: 100%;
+  max-width: 420px;
+  border-radius: 12px;
+  padding: 2rem;
+  position: relative;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.in-modal-close {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.9rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--ink-soft);
+}
+
+.in-modal-close:hover { color: var(--red); }
+
+.in-modal h3 {
+  color: var(--red);
+  margin: 0 0 18px;
+  font-size: 1.25rem;
+}
+
+.in-field { margin-bottom: 14px; }
+
+.in-field label {
+  display: block;
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.in-optional { color: #aaa; font-weight: 400; }
+
+.in-field input {
+  width: 100%;
+  padding: 11px 12px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: var(--ink);
+  outline: none;
+}
+
+.in-field input:focus { border-color: var(--bronze); }
+
+.in-error {
+  color: var(--error);
+  font-size: 0.85rem;
+  margin: 4px 0 0;
+  min-height: 1.2em;
+  display: none;
+}
+
+.in-error.show { display: block; }
+
+.in-submit-btn {
+  width: 100%;
+  background: var(--red);
+  color: var(--white);
+  border: none;
+  padding: 13px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 6px;
+}
+
+.in-submit-btn:hover { background: var(--red-dark); }
+.in-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
