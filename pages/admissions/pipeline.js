@@ -30,6 +30,7 @@ let activeTab = 'code_sent';
 let selectedYear = 'all';
 let expandedId = null;
 let expandedChildIds = new Set();
+let expandedSectionIds = new Set(); // keys like "{familyId}:contact" / "{familyId}:references"
 let canHardDelete = false;
 let canOverrideDecision = false;
 
@@ -88,12 +89,13 @@ async function loadData() {
       church_affiliation, referral_source,
       emergency_contact_name, emergency_contact_relationship, emergency_contact_phone,
       ncs_family_reference_name, ncs_family_reference_email, ncs_family_reference_phone,
+      pastoral_reference_path, mature_christian_reference_path,
       signature_name, signature_date,
       admission_children (
         id, student_full_name, nickname, dob, age, gender, current_grade, anticipated_grade,
         last_grade_completed, previous_schools, repeated_grade, repeated_grade_explain,
         disciplinary_history, disciplinary_explain, learning_needs, learning_needs_explain,
-        medical_notes, decision, decided_at
+        medical_notes, behavior_reference_path, teacher_assessment_path, decision, decided_at
       )
     `)
     .order('created_at', { ascending: false });
@@ -182,17 +184,7 @@ function render() {
   attachCardHandlers(tabRows);
 }
 
-function childChip(c) {
-  const gradeText = c.current_grade ? `${gradeLabel(c.current_grade)} → ${gradeLabel(c.anticipated_grade)}` : gradeLabel(c.anticipated_grade);
-  const decisionText = c.decision !== 'pending' ? ` · ${DECISION_LABELS[c.decision]}` : '';
-  return `<span class="chip">${escapeHtml(c.student_full_name || 'Unnamed')} — ${gradeText}${decisionText}</span>`;
-}
-
 function renderCard(f) {
-  const childChips = f.admission_children.length
-    ? f.admission_children.map(childChip).join('')
-    : `<span class="chip missing">No children added yet</span>`;
-
   return `
     <div class="family-card" data-id="${f.id}">
       <div class="card-head">
@@ -200,7 +192,6 @@ function renderCard(f) {
         <span class="status-pill ${f.status}">${f.status === 'code_sent' ? 'Code Sent' : f.status === 'in_progress' ? 'Started' : 'Submitted'}</span>
       </div>
       <div class="chips">
-        ${childChips}
         <span class="chip">${escapeHtml(f.school_year || '—')}</span>
       </div>
       <div class="contact-box">
@@ -245,11 +236,35 @@ function formatYesNoExplain(value, explain) {
   return explain ? `${yn} — ${escapeHtml(explain)}` : yn;
 }
 
+// A single "label ... View File / Not yet uploaded" row. Clicking View File
+// requests a fresh signed URL on demand (see handleAction 'view-file') rather
+// than baking one in at render time, since signed URLs expire.
+function fileRowHTML(label, path) {
+  if (!path) {
+    return `<div class="file-row"><span>${label}</span><span class="file-missing">Not yet uploaded</span></div>`;
+  }
+  return `<div class="file-row"><span>${label}</span><button type="button" class="file-link" data-action="view-file" data-path="${escapeHtml(path)}">View File</button></div>`;
+}
+
 // Independent flex rows (not a shared dl grid) so each label sits right next
-// to its own value — DOB doesn't get pushed out to match "Anticipated Grade"'s
-// column width the way a shared grid-template-columns: max-content 1fr would.
+// to its own value — see fieldRow() in pipeline.js.
 function fieldRow(label, value) {
   return `<div class="field-row"><span class="field-label">${label}</span><span class="field-value">${value}</span></div>`;
+}
+
+// Renders "{title}" + field rows for a set of [key,label] pairs, or '' if
+// every field on this family/child is empty — so an entirely-empty group
+// (e.g. no Second Parent entered) contributes nothing to its section.
+function miniGroupHTML(title, fields, row) {
+  const rows = fields
+    .map(([key, label]) => {
+      const val = row[key];
+      if (val === null || val === undefined || val === '') return null;
+      return fieldRow(label, escapeHtml(String(val)));
+    })
+    .filter(Boolean);
+  if (rows.length === 0) return '';
+  return `<div class="mini-heading">${title}</div>${rows.join('')}`;
 }
 
 // Collapsible per-child row: flat header (name + grade stacked on the left,
@@ -330,6 +345,11 @@ function renderChildCard(c, familyId) {
       ${header}
       <div class="student-body-inner">
         ${bgRows.length ? bgRows.join('') : '<p class="detail-empty">No additional details captured yet.</p>'}
+        <div class="subsection">
+          <div class="subsection-title">📎 Assessments</div>
+          ${fileRowHTML('Behavior Questionnaire', c.behavior_reference_path)}
+          ${fileRowHTML('Teacher Assessment', c.teacher_assessment_path)}
+        </div>
         ${flagRows.length ? `<div class="flag-box"><div class="flag-title">🚩 Flag for Admission Review</div>${flagRows.join('')}</div>` : ''}
         <div class="decision-row">
           ${decidedLine}
@@ -340,28 +360,46 @@ function renderChildCard(c, familyId) {
   `;
 }
 
+// One collapsible row for a combined family-level section. Returns '' (and
+// contributes nothing) if bodyHtml is empty, matching the old behavior of
+// hiding cards with no data — References & Church never comes back empty
+// though, since the Reference Files rows always render (present or "Not yet
+// uploaded"), which is itself useful status to see at a glance.
+function collapsibleSectionHTML(familyId, key, icon, label, bodyHtml) {
+  if (!bodyHtml) return '';
+  const isOpen = expandedSectionIds.has(`${familyId}:${key}`);
+  return `
+    <div class="section-row ${isOpen ? 'open' : ''}">
+      <div class="section-header" data-action="toggle-section" data-family-id="${familyId}" data-section-key="${key}">
+        <span class="section-label">${icon} ${label}</span>
+        <span class="chevron">▾</span>
+      </div>
+      ${isOpen ? `<div class="section-body">${bodyHtml}</div>` : ''}
+    </div>
+  `;
+}
+
 function renderDetail(f) {
-  let cardsHtml = f.admission_children.map(c => renderChildCard(c, f.id)).join('');
+  let cardsHtml = f.admission_children.length
+    ? `<div class="group-label">Students</div>` + f.admission_children.map(c => renderChildCard(c, f.id)).join('')
+    : '';
 
-  const familyCards = [
-    { title: '👪 Second Parent', fields: [['parent2_name','Name'],['parent2_email','Email'],['parent2_phone','Phone']] },
-    { title: '🏠 Home Address', fields: [['home_address_street','Street'],['home_address_city','City'],['home_address_state','State'],['home_address_zip','ZIP']] },
-    { title: '🚨 Emergency Contact', fields: [['emergency_contact_name','Name'],['emergency_contact_relationship','Relation'],['emergency_contact_phone','Phone']] },
-    { title: '🤝 NCS Reference', fields: [['ncs_family_reference_name','Name'],['ncs_family_reference_email','Email'],['ncs_family_reference_phone','Phone']] },
-    { title: '⛪ Church & Referral', fields: [['church_affiliation','Church'],['referral_source','Referral']] },
-  ];
+  const contactBody = [
+    miniGroupHTML('Home Address', [['home_address_street','Street'],['home_address_city','City'],['home_address_state','State'],['home_address_zip','ZIP']], f),
+    miniGroupHTML('Second Parent', [['parent2_name','Name'],['parent2_email','Email'],['parent2_phone','Phone']], f),
+    miniGroupHTML('Emergency Contact', [['emergency_contact_name','Name'],['emergency_contact_relationship','Relation'],['emergency_contact_phone','Phone']], f),
+  ].filter(Boolean).join('');
 
-  for (const card of familyCards) {
-    const rows = card.fields
-      .map(([key, label]) => {
-        const val = f[key];
-        if (val === null || val === undefined || val === '') return null;
-        return `<dt>${label}</dt><dd>${escapeHtml(String(val))}</dd>`;
-      })
-      .filter(Boolean);
-    if (rows.length === 0) continue;
-    cardsHtml += `<div class="o2-card"><div class="sec-title">${card.title}</div><dl>${rows.join('')}</dl></div>`;
-  }
+  const referencesBody = [
+    miniGroupHTML('NCS Family Reference', [['ncs_family_reference_name','Name'],['ncs_family_reference_email','Email'],['ncs_family_reference_phone','Phone']], f),
+    miniGroupHTML('Church & Referral', [['church_affiliation','Church'],['referral_source','Referral']], f),
+    `<div class="mini-heading">Reference Files</div>` +
+      fileRowHTML('Pastoral Reference', f.pastoral_reference_path) +
+      fileRowHTML('Mature Christian Reference', f.mature_christian_reference_path),
+  ].filter(Boolean).join('');
+
+  cardsHtml += collapsibleSectionHTML(f.id, 'contact', '🏠', 'Family & Contact Info', contactBody);
+  cardsHtml += collapsibleSectionHTML(f.id, 'references', '📋', 'References & Church', referencesBody);
 
   if (cardsHtml === '') {
     cardsHtml = '<p class="detail-empty" style="grid-column:1/-1;">No additional details captured yet.</p>';
@@ -432,6 +470,25 @@ async function handleAction(btn, tabRows) {
       expandedChildIds.add(childId);
     }
     render();
+    return;
+  }
+
+  if (action === 'toggle-section') {
+    const key = `${btn.dataset.familyId}:${btn.dataset.sectionKey}`;
+    if (expandedSectionIds.has(key)) {
+      expandedSectionIds.delete(key);
+    } else {
+      expandedSectionIds.add(key);
+    }
+    render();
+    return;
+  }
+
+  if (action === 'view-file') {
+    const path = btn.dataset.path;
+    const { data, error } = await supabaseClient.storage.from('admission-references').createSignedUrl(path, 3600);
+    if (error || !data) { showStatus('Could not open file: ' + (error ? error.message : 'unknown error'), 'error'); return; }
+    window.open(data.signedUrl, '_blank');
     return;
   }
 
