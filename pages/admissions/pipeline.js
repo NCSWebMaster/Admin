@@ -7,7 +7,7 @@
 //   - Stage counts for Admitted/Waitlist/Denied count CHILDREN, not families
 //   - Accept/Waitlist/Deny actions live per child (see child section in detail panel),
 //     not at the top of the family card, since decisions are no longer family-wide
-//   - Each child's card is collapsible (starts collapsed) to keep the detail panel
+//   - Each child's row is collapsible (starts collapsed) to keep the detail panel
 //     compact for families with several kids; expand/collapse state persists
 //     across re-renders via expandedChildIds
 // Requires supabase-client.js loaded first.
@@ -252,21 +252,27 @@ function fieldRow(label, value) {
   return `<div class="field-row"><span class="field-label">${label}</span><span class="field-value">${value}</span></div>`;
 }
 
-// Collapsible per-child card: header (name, grade, decision status) always
-// visible; DOB/background/flags/decision buttons only render when expanded.
+// Collapsible per-child row: flat header (name + grade stacked on the left,
+// status pill + chevron on the right, no card border) is always visible;
+// DOB/background/flags/decision buttons only render when expanded, inside
+// their own lightly-shaded block so the extra detail still reads as grouped.
 // Starts collapsed for every child — expandedChildIds tracks which are open
 // and persists across re-renders (e.g. after a decision update reloads data).
 function renderChildCard(c, familyId) {
   const isOpen = expandedChildIds.has(c.id);
   const pillClass = DECISION_PILL_CLASS[c.decision] || 'code_sent';
-  const gradeTag = c.anticipated_grade ? `Grade ${gradeLabel(c.anticipated_grade)}` : '';
+  const gradeTag = c.anticipated_grade ? `Grade ${gradeLabel(c.anticipated_grade)}` : 'Grade —';
 
   const header = `
     <div class="student-header" data-action="toggle-child" data-child-id="${c.id}">
-      <span class="sec-title">🎓 ${escapeHtml(c.student_full_name || 'Student')}</span>
-      ${gradeTag ? `<span class="grade-tag">${escapeHtml(gradeTag)}</span>` : ''}
-      <span class="status-pill ${pillClass}">${DECISION_LABELS[c.decision]}</span>
-      <span class="chevron">▼</span>
+      <div class="student-header-left">
+        <span class="student-header-name">${escapeHtml(c.student_full_name || 'Student')}</span>
+        <span class="student-header-grade">${escapeHtml(gradeTag)}</span>
+      </div>
+      <div class="student-header-right">
+        <span class="status-pill ${pillClass}">${DECISION_LABELS[c.decision]}</span>
+        <span class="chevron">▼</span>
+      </div>
     </div>
   `;
 

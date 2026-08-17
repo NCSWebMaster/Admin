@@ -254,40 +254,53 @@
 .o2-card dt::after { content: ":"; }
 .o2-card dd { margin: 0; }
 
-/* --- Collapsible student cards ---
-   Header (name, grade, decision status) always visible; body only renders
-   when expanded — pipeline.js only emits the inner markup when the card is
-   open, so there's nothing to hide/show via CSS beyond the header state. */
+/* --- Collapsible student rows ---
+   Flat rows (no per-child card border) — name + grade stack on the left,
+   status pill + chevron sit on the right, rows separated by a hairline
+   divider. Only the expanded body gets its own light background, so the
+   grouping reads as "detail card" without boxing the whole row. */
 
 .student-card {
-  background: var(--cream);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  overflow: hidden;
+  border-bottom: 1px solid var(--border);
+}
+
+.student-card:last-child {
+  border-bottom: none;
 }
 
 .student-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
-  padding: 12px 14px;
+  padding: 12px 2px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
-.student-header .sec-title {
-  margin-bottom: 0;
+.student-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
-.student-header .grade-tag {
-  font-size: 0.75rem;
+.student-header-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+
+.student-header-grade {
+  font-size: 0.8rem;
   color: var(--ink-soft);
-  font-weight: 600;
-  white-space: nowrap;
 }
 
-.student-header .status-pill {
-  margin-left: auto;
+.student-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 .student-header .chevron {
@@ -302,7 +315,10 @@
 }
 
 .student-body-inner {
-  padding: 0 14px 14px;
+  background: var(--cream);
+  border-radius: 8px;
+  padding: 12px 14px 14px;
+  margin: 0 2px 12px;
 }
 
 /* Independent flex rows (not a shared dl grid) so each label sits right
