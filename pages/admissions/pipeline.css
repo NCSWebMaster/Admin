@@ -166,6 +166,10 @@
   gap: 6px;
 }
 
+.btn-mini.full-row {
+  flex-basis: 100%;
+}
+
 .decision-select {
   -webkit-appearance: none;
   appearance: none;
@@ -308,17 +312,6 @@
   color: var(--bronze);
   margin-bottom: 6px;
 }
-
-.file-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  font-size: 0.85rem;
-  margin-bottom: 4px;
-}
-
-.file-row:last-child { margin-bottom: 0; }
 
 .file-link {
   background: none;

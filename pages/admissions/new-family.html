@@ -33,16 +33,19 @@
     <form id="family-form" novalidate>
 
       <div class="form-section">
+        <h2 class="form-section-title">Anticipated School Year</h2>
+        <div class="form-field">
+          <label for="school-year">School Year</label>
+          <select id="school-year" class="form-select" required>
+            <option value="" disabled selected>Select school year</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-section">
         <h2 class="form-section-title">Children</h2>
         <div id="children-container"></div>
         <button type="button" id="btn-add-child" class="btn-text-add">+ Add Another Child</button>
-      </div>
-
-      <div class="form-field">
-        <label for="school-year">School Year</label>
-        <select id="school-year" class="form-select" required>
-          <option value="" disabled selected>Select school year</option>
-        </select>
       </div>
 
       <div class="form-section">

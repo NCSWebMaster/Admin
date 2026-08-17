@@ -211,7 +211,7 @@ function renderCard(f) {
 }
 
 function cardActionsHtml(f) {
-  const btns = [`<button class="btn-mini" data-action="toggle-detail" data-id="${f.id}">${expandedId === f.id ? 'Hide Details' : 'View Details'}</button>`];
+  const btns = [`<button class="btn-mini full-row" data-action="toggle-detail" data-id="${f.id}">${expandedId === f.id ? 'Hide Details' : 'View Details'}</button>`];
 
   if (f.deleted_at) {
     btns.push(`<button class="btn-mini" data-action="restore" data-id="${f.id}">Restore</button>`);
@@ -236,14 +236,16 @@ function formatYesNoExplain(value, explain) {
   return explain ? `${yn} — ${escapeHtml(explain)}` : yn;
 }
 
-// A single "label ... View File / Not yet uploaded" row. Clicking View File
-// requests a fresh signed URL on demand (see handleAction 'view-file') rather
-// than baking one in at render time, since signed URLs expire.
+// A single "label: View File / Not yet uploaded" row — built on the same
+// field-row component as every other row (Street:, City:, etc.) so it gets
+// the same colon and alignment instead of a one-off layout. Clicking View
+// File requests a fresh signed URL on demand (see handleAction 'view-file')
+// rather than baking one in at render time, since signed URLs expire.
 function fileRowHTML(label, path) {
-  if (!path) {
-    return `<div class="file-row"><span>${label}</span><span class="file-missing">Not yet uploaded</span></div>`;
-  }
-  return `<div class="file-row"><span>${label}</span><button type="button" class="file-link" data-action="view-file" data-path="${escapeHtml(path)}">View File</button></div>`;
+  const value = path
+    ? `<button type="button" class="file-link" data-action="view-file" data-path="${escapeHtml(path)}">View File</button>`
+    : `<span class="file-missing">Not yet uploaded</span>`;
+  return fieldRow(label, value);
 }
 
 // Independent flex rows (not a shared dl grid) so each label sits right next
