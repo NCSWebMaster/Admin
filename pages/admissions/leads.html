@@ -6,7 +6,7 @@
 <title>Admission Leads — NCS OnePlace</title>
 <link rel="stylesheet" href="/assets/css/base.css?v=9">
 <link rel="stylesheet" href="/pages/admissions/hub.css">
-<link rel="stylesheet" href="/pages/admissions/leads.css?v=2">
+<link rel="stylesheet" href="/pages/admissions/leads.css?v=3">
 </head>
 <body>
 
@@ -76,6 +76,11 @@
     statusMsg.className = 'status-msg error show';
   }
 
+  function showSuccess(msg) {
+    statusMsg.textContent = msg;
+    statusMsg.className = 'status-msg success show';
+  }
+
   const { data: { session } } = await supabaseClient.auth.getSession();
 
   if (!session || sessionStorage.getItem('ncs_mfa_verified') !== session.user.id) {
@@ -92,6 +97,7 @@
   const roles = (staffRow && staffRow.roles) || [];
   const allowed = ['super_admin', 'leader', 'pureAdmissions', 'staff'];
   const hasAccess = roles.some(r => allowed.includes(r));
+  const canDelete = roles.some(r => ['super_admin', 'leader'].includes(r));
 
   if (!hasAccess) {
     window.location.href = '/pages/admissions/hub.html';
@@ -101,6 +107,7 @@
   let allLeads = [];
   let allApplications = [];
   let activeFilter = 'all';
+  let expandedId = null;
 
   const appStatusLabels = {
     code_sent: 'Code Sent',
@@ -133,6 +140,30 @@
     });
   }
 
+  // source_note looks like: "Info Night RSVP — August 17, 2026 · 6:30 PM · NCS Main Campus"
+  // Split it into a short pill ("Aug 17 · 6:30 PM") and a separate location value.
+  function parseRsvpSourceNote(note) {
+    if (!note || !note.startsWith('Info Night RSVP')) return null;
+    const line = note.replace(/^Info Night RSVP\s*—\s*/, '');
+    const parts = line.split('·').map(s => s.trim());
+    const [dateStr, timeStr, locationStr] = parts;
+    let shortDate = dateStr;
+    const parsed = dateStr ? new Date(dateStr) : null;
+    if (parsed && !isNaN(parsed)) {
+      shortDate = parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+    return {
+      pillText: [shortDate, timeStr].filter(Boolean).join(' · '),
+      location: locationStr || null
+    };
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str == null ? '' : String(str);
+    return div.innerHTML;
+  }
+
   function renderCounts() {
     const counts = { New: 0, Contacted: 0, Applied: 0, Enrolled: 0, Closed: 0 };
     allLeads.forEach(l => { if (counts[l.status] !== undefined) counts[l.status]++; });
@@ -163,21 +194,21 @@
 
       const gradeText = lead.grade_applying_for || 'Not specified';
       const matchedApp = findMatchingApplication(lead.email);
-      const isInfoNightRsvp = !!lead.info_night_id || (lead.source_note || '').startsWith('Info Night RSVP');
+      const rsvp = parseRsvpSourceNote(lead.source_note);
+      const isExpanded = expandedId === lead.id;
 
       card.innerHTML = `
+        <div class="card-pill-stack">
+          <span class="status-pill ${statusClass(lead.status)}">${lead.status}</span>
+          ${rsvp ? `<span class="rsvp-pill"><span class="rsvp-icon">🗓️</span> ${escapeHtml(rsvp.pillText)}</span>` : ''}
+        </div>
         <div class="row-top">
           <div>
-            <div class="student-name">
-              ${lead.student_name}
-              ${isInfoNightRsvp ? '<span class="lead-source-badge">🗓️ Info Night RSVP</span>' : ''}
-            </div>
-            <div class="meta-line">Parent/Guardian: ${lead.parent_name}</div>
-            <div class="meta-line">Grade Applying For: ${gradeText}</div>
-            ${isInfoNightRsvp ? `<div class="meta-line lead-source-note">${(lead.source_note || '').replace('Info Night RSVP — ', '')}</div>` : ''}
+            <div class="student-name">${escapeHtml(lead.student_name)}</div>
+            <div class="meta-line">Parent/Guardian: ${escapeHtml(lead.parent_name)}</div>
+            <div class="meta-line">Grade Applying For: ${escapeHtml(gradeText)}</div>
             <div class="meta-line">Submitted: ${formatDate(lead.created_at)}</div>
           </div>
-          <span class="status-pill ${statusClass(lead.status)}">${lead.status}</span>
         </div>
         ${matchedApp ? `
         <div class="meta-line" style="margin-top:10px;">
@@ -186,15 +217,30 @@
           </a>
         </div>` : ''}
         <div class="card-actions">
-          <button type="button" class="btn-mini toggle-detail">View Details</button>
+          <button type="button" class="btn-mini toggle-detail">${isExpanded ? 'Hide Details' : 'View Details'}</button>
+          ${canDelete ? '<button type="button" class="btn-mini danger delete-lead">Delete</button>' : ''}
         </div>
-        <div class="detail-panel">
-          <dl>
-            <dt>Email</dt><dd>${lead.email}</dd>
-            <dt>Phone</dt><dd>${lead.phone}</dd>
-            ${isInfoNightRsvp ? `<dt>Source</dt><dd>${lead.source_note}</dd>` : ''}
-          </dl>
-          <div class="lead-status-row" style="margin-top:14px;">
+        <div class="detail-panel ${isExpanded ? 'show' : ''}">
+          <div class="field-tiles">
+            <div class="tile">
+              <div class="tile-label">Email</div>
+              <div class="tile-value">${escapeHtml(lead.email)}</div>
+            </div>
+            <div class="tile">
+              <div class="tile-label">Phone</div>
+              <div class="tile-value">${escapeHtml(lead.phone)}</div>
+            </div>
+            <div class="tile">
+              <div class="tile-label">Status</div>
+              <div class="tile-value">${escapeHtml(lead.status)}</div>
+            </div>
+            ${rsvp && rsvp.location ? `
+            <div class="tile">
+              <div class="tile-label">Location</div>
+              <div class="tile-value">${escapeHtml(rsvp.location)}</div>
+            </div>` : ''}
+          </div>
+          <div class="lead-status-row">
             <label for="status-${lead.id}" class="sr-only">Update status</label>
             <select id="status-${lead.id}" class="form-select lead-status-select">
               <option value="New">New</option>
@@ -215,7 +261,8 @@
       card.querySelector(`#status-${lead.id}`).value = lead.status;
 
       card.querySelector('.toggle-detail').addEventListener('click', () => {
-        card.querySelector('.detail-panel').classList.toggle('show');
+        expandedId = expandedId === lead.id ? null : lead.id;
+        renderList();
       });
 
       card.querySelector('.save-status').addEventListener('click', async (e) => {
@@ -242,6 +289,34 @@
         renderCounts();
         renderList();
       });
+
+      const deleteBtn = card.querySelector('.delete-lead');
+      if (deleteBtn) {
+        deleteBtn.addEventListener('click', async () => {
+          if (!confirm(`Delete the lead for ${lead.student_name}? This can't be undone.`)) return;
+
+          deleteBtn.disabled = true;
+          deleteBtn.textContent = 'Deleting...';
+
+          const { error } = await supabaseClient
+            .from('admission_leads')
+            .delete()
+            .eq('id', lead.id);
+
+          if (error) {
+            showError('Could not delete lead. Please try again.');
+            deleteBtn.disabled = false;
+            deleteBtn.textContent = 'Delete';
+            return;
+          }
+
+          allLeads = allLeads.filter(l => l.id !== lead.id);
+          if (expandedId === lead.id) expandedId = null;
+          showSuccess('Lead deleted.');
+          renderCounts();
+          renderList();
+        });
+      }
 
       leadsList.appendChild(card);
     });
