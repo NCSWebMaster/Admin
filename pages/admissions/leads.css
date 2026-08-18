@@ -4,23 +4,19 @@
    detail-panel/btn-mini patterns from hub.css and overrides what's new here. */
 
 .family-card {
-  position: relative;
+  /* no longer needs position:relative — the pill stack floats instead of being absolutely positioned */
 }
 
-.row-top {
-  padding-right: 150px; /* leaves room for the pill stack in the corner */
-}
-
-/* Status pill + RSVP pill, stacked in the top-right corner of the card */
+/* Status pill + RSVP pill float in the top-right corner. Text wraps around them
+   only where it overlaps, then returns to the card's full width below — no more
+   fixed padding-right squeezing every line down the whole right edge of the card. */
 .card-pill-stack {
-  position: absolute;
-  top: 16px;
-  right: 18px;
+  float: right;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 6px;
-  max-width: 150px;
+  margin: 0 0 10px 12px;
 }
 
 .status-pill.lead-new { background: #EAF1FB; color: #2A5FA5; }
@@ -28,6 +24,14 @@
 .status-pill.lead-applied { background: #F3EAFB; color: #6B3FA0; }
 .status-pill.lead-enrolled { background: var(--success-bg); color: var(--success); }
 .status-pill.lead-closed { background: var(--error-bg); color: var(--error); }
+
+.status-pill {
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 6px 16px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
 
 /* Single pill: 🗓️ icon on the left, date/time text next to it — no separate label pill */
 .rsvp-pill {
@@ -37,16 +41,21 @@
   background: #FDF3E7;
   color: #A66A1E;
   border: 1px solid #f0dcbe;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  padding: 3px 10px 3px 8px;
+  padding: 4px 11px 4px 9px;
   border-radius: 20px;
   white-space: nowrap;
 }
 
 .rsvp-pill .rsvp-icon {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   line-height: 1;
+}
+
+.student-name .label {
+  color: var(--ink-soft);
+  font-weight: 400;
 }
 
 /* Detail panel — separate stacked tiles, one field per row, wraps long emails cleanly */
@@ -112,8 +121,6 @@
   outline-offset: 2px;
 }
 
-@media(max-width: 500px) {
-  .row-top { padding-right: 110px; }
-  .card-pill-stack { max-width: 100px; top: 14px; right: 14px; }
-  .rsvp-pill, .status-pill { font-size: 0.68rem; padding: 3px 8px; }
+.card-actions {
+  clear: both;
 }
