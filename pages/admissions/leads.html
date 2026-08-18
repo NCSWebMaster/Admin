@@ -252,8 +252,8 @@
             <button type="button" class="btn-mini accept save-status">Save Status</button>
           </div>
           <div class="metadata-note">
-            Submitted IP: ${lead.submitted_ip || 'Not recorded'}<br>
-            User Agent: ${lead.user_agent || 'Not recorded'}
+            Submitted IP: ${escapeHtml(lead.submitted_ip) || 'Not recorded'}<br>
+            User Agent: ${escapeHtml(lead.user_agent) || 'Not recorded'}
           </div>
         </div>
       `;
