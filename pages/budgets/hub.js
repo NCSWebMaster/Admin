@@ -20,6 +20,26 @@ function populateRoomSelect() {
   }
 }
 
+// School year runs July–June, so anything from July onward belongs to the
+// year pair starting that calendar year (e.g. July 2026 -> "2026-2027").
+function currentSchoolYearStartYear() {
+  const now = new Date();
+  return now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1;
+}
+
+function populateSchoolYearSelect(select) {
+  if (!select) return;
+  const currentStart = currentSchoolYearStartYear();
+  const options = [];
+  for (let offset = -1; offset <= 3; offset++) {
+    const startYear = currentStart + offset;
+    options.push(`${startYear}-${startYear + 1}`);
+  }
+  const currentLabel = `${currentStart}-${currentStart + 1}`;
+  select.innerHTML = options.map(y => `<option value="${y}">${y}</option>`).join('');
+  select.value = currentLabel;
+}
+
 async function populateTeacherSelect() {
   const select = document.getElementById('teacher-select-input');
   const { data, error } = await supabaseClient.rpc('list_teacher_names');
@@ -310,7 +330,7 @@ document.querySelectorAll('[data-action="save-budget"]').forEach(btn => {
 
     formEl.classList.remove('show');
     formEl.querySelector('.add-owner-name').value = '';
-    formEl.querySelector('.add-school-year').value = '';
+    populateSchoolYearSelect(formEl.querySelector('.add-school-year'));
     formEl.querySelector('.add-amount').value = '';
     showStatus('Budget created.', 'success');
     await loadData();
@@ -341,6 +361,8 @@ els.yearSelect.addEventListener('change', () => {
 
   populateRoomSelect();
   await populateTeacherSelect();
+  populateSchoolYearSelect(document.getElementById('room-mom-school-year-input'));
+  populateSchoolYearSelect(document.getElementById('teacher-school-year-input'));
 
   await loadData();
 })();
